@@ -57,23 +57,33 @@
     textarea::placeholder { 
        color: #FFFFFF !important;
        font-family: 'Cormorant Garamond', serif;
-       font-size: 17px !important;
+       font-size: 14px !important;
+       line-height: 1.4 !important;
        opacity: 1 !important;
     }
     textarea::-webkit-input-placeholder { 
       color: #FFFFFF !important; 
-      font-size: 17px !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
       opacity: 1 !important; 
     }
     textarea::-moz-placeholder { 
       color: #FFFFFF !important; 
-      font-size: 17px !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
       opacity: 1 !important; 
     }
     textarea:-ms-input-placeholder { 
       color: #FFFFFF !important; 
-      font-size: 17px !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
       opacity: 1 !important; 
+    }
+    @media (min-width: 768px) {
+      textarea::placeholder { font-size: 17px !important; }
+      textarea::-webkit-input-placeholder { font-size: 17px !important; }
+      textarea::-moz-placeholder { font-size: 17px !important; }
+      textarea:-ms-input-placeholder { font-size: 17px !important; }
     }
   </style>
 </head>
@@ -652,7 +662,7 @@
                   <button onClick={handleCloseCommentBox}
                     onMouseEnter={() => setHoveredElement('closeComment')} onMouseLeave={() => setHoveredElement(null)}
                     className="absolute transition-all" 
-                    style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#0b385f' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
+                    style={{ top: isMobile ? -30 : -24, right: isMobile ? 5 : 0, color: isHovering('closeComment') ? '#0b385f' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -666,11 +676,11 @@
                       className="font-body"
                       spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
                       data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
-                      style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: 'auto', minHeight: 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.1, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'auto', caretColor: '#ffffff' }} />
+                      style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: 'auto', minHeight: isMobile ? 80 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.1, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: '#ffffff' }} />
                   )}
                   {dissolving && (
                     <>
-                      <textarea disabled value={dissolveText} className="font-body" style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: 'auto', minHeight: 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.1, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', color: 'transparent', overflow: 'auto' }} />
+                      <textarea disabled value={dissolveText} className="font-body" style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: 'auto', minHeight: 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.1, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', color: 'transparent', overflow: 'hidden' }} />
                       <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '17px', fontWeight: 400, lineHeight: 1.1, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', pointerEvents: 'none' }}>
                         <div style={{ maxWidth: isMobile ? '100%' : '70%', width: '100%' }}>
                           {dissolveText}
@@ -792,6 +802,7 @@
   </script>
 </body>
 </html>
+
 
 
 
