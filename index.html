@@ -77,6 +77,14 @@
       font-size: 17px !important;
       opacity: 1 !important; 
     }
+
+    .preface-page {
+      animation: prefaceFadeIn 0.6s ease-out forwards;
+    }
+    @keyframes prefaceFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body oncontextmenu="return false;">
@@ -111,6 +119,7 @@
       const [showCommentBox, setShowCommentBox] = useState(false);
       const [showContactSheet, setShowContactSheet] = useState(false);
       const [showCommentsView, setShowCommentsView] = useState(false);
+      const [showPreface, setShowPreface] = useState(false);
       const [hoveredElement, setHoveredElement] = useState(null);
       const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
@@ -145,6 +154,11 @@
       const lastClickTime = useRef(0);
       const commentBoxRef = useRef(null);
       const textareaRef = useRef(null);
+
+      // Double-click / double-tap tracking
+      const lastPhotoClickTime = useRef(0);
+      const lastPhotoTapTime = useRef(0);
+      const DOUBLE_CLICK_THRESHOLD = 300; // ms
 
       const photoFiles = [
         'Untitled_250619.jpg', 'Untitled_241221.jpg', 'Untitiled_241208.jpg',
@@ -292,14 +306,32 @@
         setCurrentPhotoIndex(prev => (prev - 1 + randomOrder.length) % randomOrder.length);
       }, [randomOrder.length]);
 
+      // Desktop: double-click opens preface, single click advances photo
       const handlePhotoClick = useCallback(() => {
-        if (!isMobile) handleNextPhoto();
+        if (!isMobile) {
+          const now = Date.now();
+          if (now - lastPhotoClickTime.current < DOUBLE_CLICK_THRESHOLD) {
+            lastPhotoClickTime.current = 0;
+            setShowPreface(true);
+          } else {
+            lastPhotoClickTime.current = now;
+            handleNextPhoto();
+          }
+        }
       }, [isMobile, handleNextPhoto]);
 
+      // Mobile: double-tap opens preface, single tap opens comment box
       const handlePhotoTap = useCallback(() => {
         if (justFinishedZooming.current) return;
         if (isMobile && !showCommentBox && !showContactSheet && !showCommentsView) {
-          setShowCommentBox(true);
+          const now = Date.now();
+          if (now - lastPhotoTapTime.current < DOUBLE_CLICK_THRESHOLD) {
+            lastPhotoTapTime.current = 0;
+            setShowPreface(true);
+          } else {
+            lastPhotoTapTime.current = now;
+            setShowCommentBox(true);
+          }
         }
       }, [isMobile, showCommentBox, showContactSheet, showCommentsView]);
 
@@ -366,7 +398,6 @@
         setDissolving(true);
         setCommentText('');
 
-        // Guardar en Supabase
         try {
           await supabase.from('comments').insert({
             photo_id: currentPhoto.id,
@@ -378,7 +409,6 @@
           console.error('Error saving comment:', error);
         }
 
-        // Actualizar estado local
         setPhotoComments(prev => {
           const curr = prev[currentPhoto.id] || [];
           const newComments = [...curr, textToSave];
@@ -485,7 +515,6 @@
         e.target._touchStartY = touch.clientY;
         e.target._touchStartTime = Date.now();
 
-        // Start drag immediately
         setDragOffset({ x: touch.clientX - imagePositions[index].x, y: touch.clientY - imagePositions[index].y });
         setDraggingIndex(index);
         setActiveImageIndex(index);
@@ -549,7 +578,6 @@
         const diffY = Math.abs((e.changedTouches[0]?.clientY || 0) - (e.target._touchStartY || 0));
         const duration = Date.now() - (e.target._touchStartTime || 0);
         
-        // If barely moved and quick tap, open the photo
         if (diffX < 10 && diffY < 10 && duration < 200) {
           setDraggingIndex(null);
           setActiveImageIndex(null);
@@ -772,6 +800,60 @@
             </div>
           )}
 
+          {/* ── Preface page ── */}
+          {showPreface && (
+            <div className="preface-page fixed inset-0 z-50 overflow-auto" style={{ backgroundColor: '#FAF9F6', cursor: isMobile ? 'auto' : 'none' }}
+              onClick={() => setShowPreface(false)}>
+              {!isMobile && <CustomCursor isClickable={hoveredElement !== null} />}
+
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
+                onMouseEnter={() => setHoveredElement('closePreface')}
+                onMouseLeave={() => setHoveredElement(null)}
+                className="absolute z-[60] transition-all"
+                style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#0b385f' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              <div style={{
+                maxWidth: isMobile ? '88%' : '36rem',
+                margin: '0 auto',
+                padding: isMobile ? `${pagePadding + 48}px ${pagePadding}px ${pagePadding + 32}px` : `${pagePadding + 56}px ${pagePadding}px ${pagePadding + 40}px`
+              }} onClick={(e) => e.stopPropagation()}>
+
+                <h1 style={{
+                  fontFamily: "'Times New Roman', Times, serif",
+                  fontSize: isMobile ? '1.125rem' : '1.25rem',
+                  fontWeight: 400,
+                  letterSpacing: '0.04em',
+                  color: '#121212',
+                  textAlign: 'center',
+                  marginBottom: isMobile ? '2rem' : '2.5rem',
+                  opacity: 0.85
+                }}>
+                  Preface
+                </h1>
+
+                <p style={{
+                  fontFamily: "'Times New Roman', Times, serif",
+                  fontSize: isMobile ? '0.875rem' : '0.9375rem',
+                  fontWeight: 400,
+                  lineHeight: 1.75,
+                  color: '#121212',
+                  opacity: 0.7,
+                  textAlign: 'left',
+                  margin: 0
+                }}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                  <br /><br />
+                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.
+                </p>
+              </div>
+            </div>
+          )}
+
           {showScreensaver && (
             <div className="fixed inset-0 z-[200]" style={{ backgroundColor: 'rgba(250,249,246,0.95)' }} onClick={() => setShowScreensaver(false)}>
               <video 
@@ -794,10 +876,6 @@
   </script>
 </body>
 </html>
-
-
-
-
 
 
 
