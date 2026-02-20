@@ -85,6 +85,18 @@
       from { opacity: 0; }
       to { opacity: 1; }
     }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .blink-cursor {
+      animation: blink 1s step-end infinite;
+      font-weight: 300;
+    }
+    /* hide native placeholder — we render a custom one */
+    textarea.custom-placeholder::placeholder { color: transparent !important; }
+    textarea.custom-placeholder::-webkit-input-placeholder { color: transparent !important; }
+    textarea.custom-placeholder::-moz-placeholder { color: transparent !important; }
   </style>
 </head>
 <body oncontextmenu="return false;">
@@ -699,24 +711,29 @@
                   </button>
                 )}
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 40, marginTop: -20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 40 }}>
                   {!showMergedMessage && !dissolving && (
-                    <textarea ref={textareaRef} value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                      placeholder="The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you..."
-                      className="font-body"
-                      spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
-                      data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
-                      style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: isMobile ? 120 : 'auto', minHeight: isMobile ? 120 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: '#ffffff' }} />
+                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
+                      <textarea ref={textareaRef} value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                        placeholder=""
+                        className="font-body custom-placeholder"
+                        spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
+                        data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
+                        style={{ width: '100%', height: isMobile ? 120 : 'auto', minHeight: isMobile ? 120 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: '#ffffff' }} />
+                      {commentText === '' && (
+                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', padding: isMobile ? '0 5px' : '0 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                          <span>The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...<span className="blink-cursor">|</span></span>
+                        </div>
+                      )}
+                    </div>
                   )}
                   {dissolving && (
-                    <>
-                      <textarea disabled value={dissolveText} className="font-body" style={{ width: '100%', maxWidth: isMobile ? '100%' : '70%', height: isMobile ? 120 : 'auto', minHeight: isMobile ? 120 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', color: 'transparent', overflow: 'hidden' }} />
-                      <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '17px', fontWeight: 400, lineHeight: 1.1, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', pointerEvents: 'none' }}>
-                        <div style={{ maxWidth: isMobile ? '100%' : '70%', width: '100%' }}>
-                          {dissolveText}
-                        </div>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
+                      <textarea disabled value={dissolveText} className="font-body" style={{ width: '100%', height: isMobile ? 120 : 'auto', minHeight: isMobile ? 120 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', color: 'transparent', overflow: 'hidden' }} />
+                      <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                        {dissolveText}
                       </div>
-                    </>
+                    </div>
                   )}
                   {showMergedMessage && (
                     <p className="font-body" style={{ position: 'absolute', margin: 0, fontSize: '17px', fontWeight: 400, lineHeight: 1.1, color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: mergedMessageOpacity, transition: 'opacity 0.5s ease-out' }}>
@@ -897,7 +914,6 @@
   </script>
 </body>
 </html>
-
 
 
 
