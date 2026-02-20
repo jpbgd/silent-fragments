@@ -417,7 +417,7 @@
         const currentPhoto = photos[randomOrder[currentPhotoIndex]];
         
         // Capture exact rendered height before swap
-        if (textareaRef.current) dissolveHeight.current = textareaRef.current.scrollHeight;
+        if (textareaRef.current) dissolveHeight.current = textareaRef.current.offsetHeight;
 
         setDissolveText(textToSave);
         setDissolveOpacity(1);
@@ -723,17 +723,17 @@
                         className="font-body custom-placeholder"
                         spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
                         data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
-                        style={{ width: '100%', height: isMobile ? 120 : 'auto', minHeight: isMobile ? 120 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff' }} />
+                        style={{ width: '100%', height: 'auto', minHeight: isMobile ? 90 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: '10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff', display: 'block' }} />
                       {commentText === '' && (
-                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
-                          <span>The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...<span className="blink-cursor">|</span></span>
+                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, pointerEvents: 'none', padding: '10px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                          The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...<span className="blink-cursor">|</span>
                         </div>
                       )}
                     </div>
                   )}
                   {dissolving && (
-                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%', height: isMobile ? 120 : dissolveHeight.current, minHeight: isMobile ? 120 : 40 }}>
-                      <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: isMobile ? '0 5px 10px 5px' : '0 10px 10px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%', height: dissolveHeight.current }}>
+                      <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: '10px 10px', pointerEvents: 'none' }}>
                         {dissolveText}
                       </div>
                     </div>
@@ -917,6 +917,7 @@
   </script>
 </body>
 </html>
+
 
 
 
