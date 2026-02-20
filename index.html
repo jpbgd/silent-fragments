@@ -14,7 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root { 
-      --accent-blue: #0b385f; 
+      --accent-blue: #111184; 
       --text-dark: #121212;
       --text-medium: #121212;
       --bg-cream: #FAF9F6;
@@ -29,6 +29,7 @@
     }
     body { cursor: none; }
     * { cursor: none !important; box-sizing: border-box; }
+    button, [role="button"], a { cursor: pointer !important; }
     img { pointer-events: none; -webkit-user-drag: none; }
     input, textarea { font-size: 17px !important; }
     #root:empty { display: none; }
@@ -665,18 +666,19 @@
 
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
       const isHovering = (el) => hoveredElement === el;
-      const textColor = (el) => isHovering(el) ? '#0b385f' : '#121212';
+      const textColor = (el) => isHovering(el) ? '#111184' : '#121212';
       const textOpacity = (el) => isHovering(el) ? 1 : 0.7;
 
       const CustomCursor = ({ isClickable }) => (
-        <div className="fixed pointer-events-none" style={{
-          left: cursorPosition.x, top: cursorPosition.y, transform: 'translate(-50%, -50%)',
-          width: 12, height: 12, borderRadius: '50%', zIndex: 10000,
-          backgroundColor: isClickable ? '#0b385f' : 'white',
-          border: isClickable ? 'none' : '1.5px solid #1A1A1A',
-          boxShadow: isClickable ? 'none' : '0 1px 4px rgba(0,0,0,0.2)',
-          transition: 'background-color 0.2s, border 0.2s, box-shadow 0.2s'
-        }} />
+        isClickable ? null : (
+          <div className="fixed pointer-events-none" style={{
+            left: cursorPosition.x, top: cursorPosition.y, transform: 'translate(-50%, -50%)',
+            width: 20, height: 20, zIndex: 10000
+          }}>
+            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, background: '#1A1A1A', transform: 'translateY(-50%)' }} />
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: '#1A1A1A', transform: 'translateX(-50%)' }} />
+          </div>
+        )
       );
 
       const pagePadding = isMobile ? 12 : 24;
@@ -698,7 +700,7 @@
               <div className="w-full text-center cursor-pointer flex-shrink-0" onClick={handleTitleClick}
                 onMouseEnter={() => setHoveredElement('title')} onMouseLeave={() => setHoveredElement(null)}>
                 <h2 className="font-ui transition-all"
-                  style={{ fontSize: isMobile ? '0.75rem' : '0.875rem', color: isHovering('title') ? '#0b385f' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
+                  style={{ fontSize: isMobile ? '0.75rem' : '0.875rem', color: isHovering('title') ? '#111184' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
               </div>
 
               <div className="flex items-center justify-center w-full"
@@ -730,8 +732,8 @@
                   <div className="flex-1 flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(true); }}
                       onMouseEnter={() => setHoveredElement('photoTitle')} onMouseLeave={() => setHoveredElement(null)}
-                      className="font-ui transition-all text-right"
-                      style={{ fontSize: isMobile ? '0.6875rem' : '0.75rem', color: textColor('photoTitle'), opacity: textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px' }}>
+                      className="transition-all text-right"
+                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.6875rem' : '0.75rem', color: textColor('photoTitle'), opacity: textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px', letterSpacing: '0.03em' }}>
                       {currentPhoto.date}
                     </button>
                   </div>
@@ -749,7 +751,7 @@
                   <button onClick={handleCloseCommentBox}
                     onMouseEnter={() => setHoveredElement('closeComment')} onMouseLeave={() => setHoveredElement(null)}
                     className="absolute transition-all" 
-                    style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#0b385f' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
+                    style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#111184' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -774,7 +776,7 @@
                   )}
                   {dissolving && (
                     <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
-                      <div className="font-body" style={{ width: '100%', height: dissolveHeight.current, fontSize: '18px', fontWeight: 400, lineHeight: 1.2, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: '10px 10px', pointerEvents: 'none', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', boxSizing: 'border-box' }}>
+                      <div className="font-body" style={{ width: '100%', minHeight: dissolveHeight.current, fontSize: '18px', fontWeight: 400, lineHeight: 1.2, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: '10px 10px', pointerEvents: 'none', boxSizing: 'border-box' }}>
                         {dissolveText}
                       </div>
                     </div>
@@ -805,7 +807,7 @@
               <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(false); }}
                 onMouseEnter={() => setHoveredElement('closeContact')} onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all" 
-                style={{ top: pagePadding, right: pagePadding, color: isHovering('closeContact') ? '#0b385f' : '#121212', opacity: isHovering('closeContact') ? 1 : 0.5 }}>
+                style={{ top: pagePadding, right: pagePadding, color: isHovering('closeContact') ? '#111184' : '#121212', opacity: isHovering('closeContact') ? 1 : 0.5 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -854,7 +856,7 @@
               {!isMobile && <CustomCursor isClickable={hoveredElement !== null} />}
               <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(false); }}
                 onMouseEnter={() => setHoveredElement('closeComments')} onMouseLeave={() => setHoveredElement(null)}
-                className="absolute z-[60] transition-all" style={{ top: pagePadding - 10, right: pagePadding, color: isHovering('closeComments') ? '#0b385f' : '#121212', opacity: isHovering('closeComments') ? 1 : 0.5 }}>
+                className="absolute z-[60] transition-all" style={{ top: pagePadding - 10, right: pagePadding, color: isHovering('closeComments') ? '#111184' : '#121212', opacity: isHovering('closeComments') ? 1 : 0.5 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -882,7 +884,7 @@
                 onMouseEnter={() => setHoveredElement('closePreface')}
                 onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all"
-                style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#0b385f' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
+                style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#111184' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -928,7 +930,7 @@
                     onMouseEnter={() => setHoveredElement('backToImages')}
                     onMouseLeave={() => setHoveredElement(null)}
                     className="font-ui transition-all"
-                    style={{ background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: isHovering('backToImages') ? '#0b385f' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: isHovering('backToImages') ? '#111184' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
                     back to images
                   </button>
                 </div>
