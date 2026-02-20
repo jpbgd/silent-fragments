@@ -158,6 +158,7 @@
       // Double-click / double-tap tracking
       const lastPhotoClickTime = useRef(0);
       const lastPhotoTapTime = useRef(0);
+      const singleTapTimer = useRef(null);
       const DOUBLE_CLICK_THRESHOLD = 300; // ms
 
       const photoFiles = [
@@ -323,17 +324,26 @@
       // Mobile: double-tap opens preface, single tap opens comment box
       const handlePhotoTap = useCallback(() => {
         if (justFinishedZooming.current) return;
-        if (isMobile && !showCommentBox && !showContactSheet && !showCommentsView) {
+        if (isMobile && !showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
           const now = Date.now();
           if (now - lastPhotoTapTime.current < DOUBLE_CLICK_THRESHOLD) {
+            // Double-tap detected — cancel the pending single-tap and open preface
+            if (singleTapTimer.current) {
+              clearTimeout(singleTapTimer.current);
+              singleTapTimer.current = null;
+            }
             lastPhotoTapTime.current = 0;
             setShowPreface(true);
           } else {
             lastPhotoTapTime.current = now;
-            setShowCommentBox(true);
+            // Delay single-tap action to wait for a potential second tap
+            singleTapTimer.current = setTimeout(() => {
+              singleTapTimer.current = null;
+              setShowCommentBox(true);
+            }, DOUBLE_CLICK_THRESHOLD + 50);
           }
         }
-      }, [isMobile, showCommentBox, showContactSheet, showCommentsView]);
+      }, [isMobile, showCommentBox, showContactSheet, showCommentsView, showPreface]);
 
       const handleTouchStartSwipe = useCallback((e) => {
         if (!isMobile || showCommentBox || showContactSheet || showCommentsView) return;
@@ -675,7 +685,7 @@
 
           {showCommentBox && (
             <div className="fixed z-50" onClick={handleCommentBoxOutsideClick}
-              style={{ inset: 0, backgroundColor: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ inset: 0, backgroundColor: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center', paddingTop: isMobile ? '18%' : 0 }}>
               <div ref={commentBoxRef} style={{ width: '90%', maxWidth: isMobile ? '100%' : '42rem', textAlign: 'center', padding: isMobile ? '0 10px' : '0 20px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                 
                 {!showMergedMessage && !dissolving && (
@@ -850,7 +860,17 @@
                   <br /><br />
                   Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.
                 </p>
-              </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? '2.5rem' : '3rem', paddingBottom: isMobile ? '1rem' : '0' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
+                    onMouseEnter={() => setHoveredElement('backToImages')}
+                    onMouseLeave={() => setHoveredElement(null)}
+                    className="font-ui transition-all"
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: isHovering('backToImages') ? '#0b385f' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
+                    back to images
+                  </button>
+                </div>
             </div>
           )}
 
@@ -876,10 +896,6 @@
   </script>
 </body>
 </html>
-
-
-
-
 
 
 
