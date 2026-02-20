@@ -152,6 +152,11 @@
       const [activeImageIndex, setActiveImageIndex] = useState(null);
       const [showScreensaver, setShowScreensaver] = useState(false);
       const [screensaverPosition, setScreensaverPosition] = useState({ x: 0, y: 0 });
+      const [screensaverDrift, setScreensaverDrift] = useState({ x: 0, y: 0 });
+      const screensaverDriftTarget = useRef({ x: 0, y: 0 });
+      const screensaverDriftCurrent = useRef({ x: 0, y: 0 });
+      const driftAnimFrame = useRef(null);
+      const driftChangeTimer = useRef(null);
       const inactivityTimer = useRef(null);
 
       const [swipeStartX, setSwipeStartX] = useState(null);
@@ -269,6 +274,42 @@
           events.forEach(event => window.removeEventListener(event, resetInactivity));
         };
       }, [showScreensaver]);
+
+      // Screensaver slow drift animation
+      useEffect(() => {
+        if (!showScreensaver) {
+          if (driftAnimFrame.current) cancelAnimationFrame(driftAnimFrame.current);
+          if (driftChangeTimer.current) clearTimeout(driftChangeTimer.current);
+          screensaverDriftCurrent.current = { x: 0, y: 0 };
+          setScreensaverDrift({ x: 0, y: 0 });
+          return;
+        }
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const maxDrift = isMobile ? 40 : 60;
+        const pickNewTarget = () => {
+          screensaverDriftTarget.current = {
+            x: (Math.random() - 0.5) * 2 * maxDrift,
+            y: (Math.random() - 0.5) * 2 * maxDrift
+          };
+          driftChangeTimer.current = setTimeout(pickNewTarget, 3000 + Math.random() * 3000);
+        };
+        pickNewTarget();
+        const speed = 0.004;
+        const animate = () => {
+          const cur = screensaverDriftCurrent.current;
+          const tgt = screensaverDriftTarget.current;
+          const nx = cur.x + (tgt.x - cur.x) * speed;
+          const ny = cur.y + (tgt.y - cur.y) * speed;
+          screensaverDriftCurrent.current = { x: nx, y: ny };
+          setScreensaverDrift({ x: nx, y: ny });
+          driftAnimFrame.current = requestAnimationFrame(animate);
+        };
+        driftAnimFrame.current = requestAnimationFrame(animate);
+        return () => {
+          cancelAnimationFrame(driftAnimFrame.current);
+          clearTimeout(driftChangeTimer.current);
+        };
+      }, [showScreensaver, isMobile]);
 
       // Auto-focus textarea when comment box opens
       useEffect(() => {
@@ -723,17 +764,17 @@
                         className="font-body custom-placeholder"
                         spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
                         data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
-                        style={{ width: '100%', height: 'auto', minHeight: isMobile ? 90 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, padding: '10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff', display: 'block' }} />
+                        style={{ width: '100%', height: 'auto', minHeight: isMobile ? 90 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2, padding: '10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff', display: 'block' }} />
                       {commentText === '' && (
-                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, pointerEvents: 'none', padding: '10px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, pointerEvents: 'none', padding: '10px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
                           The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...<span className="blink-cursor">|</span>
                         </div>
                       )}
                     </div>
                   )}
                   {dissolving && (
-                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%', height: dissolveHeight.current }}>
-                      <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, fontSize: '18px', fontWeight: 400, lineHeight: 1.4, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: '10px 10px', pointerEvents: 'none' }}>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
+                      <div className="font-body" style={{ width: '100%', height: dissolveHeight.current, fontSize: '18px', fontWeight: 400, lineHeight: 1.2, color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: dissolveOpacity, filter: `blur(${(1-dissolveOpacity)*8}px)`, transition: 'opacity 2.5s ease-out, filter 2.5s ease-out', whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: 'center', padding: '10px 10px', pointerEvents: 'none', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', boxSizing: 'border-box' }}>
                         {dissolveText}
                       </div>
                     </div>
@@ -904,7 +945,7 @@
                 playsInline
                 webkit-playsinline="true"
                 ref={(el) => { if (el) el.play().catch(() => {}); }}
-                style={{ position: 'absolute', left: screensaverPosition.x, top: screensaverPosition.y, width: '70%', height: 'auto', maxHeight: '70%', objectFit: 'contain' }}>
+                style={{ position: 'absolute', left: screensaverPosition.x + screensaverDrift.x, top: screensaverPosition.y + screensaverDrift.y, width: isMobile ? '50%' : '70%', height: 'auto', maxHeight: isMobile ? '50%' : '70%', objectFit: 'contain' }}>
                 <source src={`https://raw.githubusercontent.com/${githubUser}/${githubRepo}/${githubBranch}/Paramo.mp4`} type="video/mp4" />
               </video>
             </div>
@@ -917,6 +958,7 @@
   </script>
 </body>
 </html>
+
 
 
 
