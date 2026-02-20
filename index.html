@@ -704,7 +704,7 @@
               </div>
 
               <div className="flex items-center justify-center w-full"
-                style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0', cursor: isMobile ? 'default' : 'none' }}
+                style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0', cursor: isMobile ? 'default' : (isHovering('photo') ? 'pointer' : 'none') }}
                 onClick={isMobile && mainPhotoZoom.scale <= 1 ? handlePhotoTap : handlePhotoClick} onMouseEnter={() => !isMobile && setHoveredElement('photo')} onMouseLeave={() => !isMobile && setHoveredElement(null)}>
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none', transform: `translate(${mainPhotoZoom.x}px, ${mainPhotoZoom.y}px) scale(${mainPhotoZoom.scale})`, transition: isZooming ? 'none' : 'transform 0.2s ease-out' }} />
@@ -724,8 +724,8 @@
                   <div className="flex-1 flex justify-center">
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentBox(true); }}
                       onMouseEnter={() => setHoveredElement('share')} onMouseLeave={() => setHoveredElement(null)}
-                      className="font-ui transition-all"
-                      style={{ fontSize: isMobile ? '0.6875rem' : '0.75rem', color: textColor('share'), opacity: textOpacity('share'), textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
+                      className="transition-all"
+                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.6875rem' : '0.75rem', color: textColor('share'), opacity: textOpacity('share'), textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
                       Give it words
                     </button>
                   </div>
@@ -790,8 +790,8 @@
                 {!showMergedMessage && !dissolving && (
                   <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <button onClick={handleSubmitComment} onMouseEnter={() => setHoveredElement('submit')} onMouseLeave={() => setHoveredElement(null)}
-                      className="font-ui"
-                      style={{ background: 'none', border: 'none', padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '0.6875rem' : '0.75rem', textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px', transition: 'opacity 0.2s', opacity: !isMobile && isHovering('submit') ? 0.7 : 1 }}>
+                      className=""
+                      style={{ fontFamily: "'Times New Roman', Times, serif", background: 'none', border: 'none', padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '0.6875rem' : '0.75rem', textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px', transition: 'opacity 0.2s', opacity: !isMobile && isHovering('submit') ? 0.7 : 1 }}>
                       Share
                     </button>
                   </div>
@@ -812,8 +812,8 @@
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <p className="font-ui absolute left-1/2 transform -translate-x-1/2 z-[60]"
-                style={{ bottom: pagePadding, pointerEvents: 'none', fontSize: isMobile ? '0.6875rem' : '0.75rem', opacity: 0.7, color: '#121212' }}>
+              <p className="absolute left-1/2 transform -translate-x-1/2 z-[60]"
+                style={{ fontFamily: "'Times New Roman', Times, serif", bottom: pagePadding, pointerEvents: 'none', fontSize: isMobile ? '0.6875rem' : '0.75rem', opacity: 0.7, color: '#121212' }}>
                 Reorder freely
               </p>
               <div className="w-full h-full relative">
@@ -929,8 +929,8 @@
                     onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
                     onMouseEnter={() => setHoveredElement('backToImages')}
                     onMouseLeave={() => setHoveredElement(null)}
-                    className="font-ui transition-all"
-                    style={{ background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: isHovering('backToImages') ? '#111184' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
+                    className="transition-all"
+                    style={{ fontFamily: "'Times New Roman', Times, serif", background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: isHovering('backToImages') ? '#111184' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
                     back to images
                   </button>
                 </div>
@@ -960,7 +960,6 @@
   </script>
 </body>
 </html>
-
 
 
 
