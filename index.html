@@ -720,7 +720,7 @@
                   <div className="flex-1 flex justify-start">
                     <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(true); }}
                       onMouseEnter={() => setHoveredElement('contact')} onMouseLeave={() => setHoveredElement(null)}
-                      className="transition-all" style={{ color: textColor('contact'), opacity: textOpacity('contact'), padding: '12px', margin: '-12px' }}>
+                      className="transition-all" style={{ color: textColor('contact'), opacity: textOpacity('contact'), padding: '12px', margin: '-12px', verticalAlign: 'baseline', lineHeight: 1 }}>
                       <svg style={{ width: isMobile ? '1rem' : '1.125rem', height: isMobile ? '1rem' : '1.125rem' }} viewBox="0 0 24 24" fill="currentColor">
                         <circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="7" r="2.5"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2.5"/>
                       </svg>
