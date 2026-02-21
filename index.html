@@ -867,7 +867,7 @@
                 </svg>
               </button>
               <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 40 }}>
-                <div className="font-body" style={{ fontSize: 9, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
+                <div className="font-body" style={{ fontSize: 11, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
                   {photoComments[currentPhoto.id]?.length > 0 ? (
                     photoComments[currentPhoto.id].map((comment, idx) => (
                       <span key={idx}>{comment}{idx < photoComments[currentPhoto.id].length - 1 && ' _ '}</span>
