@@ -382,7 +382,6 @@
         if (isMobile && !showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
           const now = Date.now();
           if (now - lastPhotoTapTime.current < DOUBLE_CLICK_THRESHOLD) {
-            // Double-tap detected — cancel the pending single-tap and open preface
             if (singleTapTimer.current) {
               clearTimeout(singleTapTimer.current);
               singleTapTimer.current = null;
@@ -391,7 +390,6 @@
             setShowPreface(true);
           } else {
             lastPhotoTapTime.current = now;
-            // Delay single-tap action to wait for a potential second tap
             singleTapTimer.current = setTimeout(() => {
               singleTapTimer.current = null;
               setShowCommentBox(true);
@@ -458,7 +456,6 @@
         const textToSave = commentText.trim();
         const currentPhoto = photos[randomOrder[currentPhotoIndex]];
         
-        // Capture exact rendered height before swap
         if (textareaRef.current) dissolveHeight.current = textareaRef.current.offsetHeight;
 
         setDissolveText(textToSave);
@@ -683,6 +680,18 @@
 
       const pagePadding = isMobile ? 12 : 24;
 
+      // Shared bottom-center button style — same position as "Write to image"
+      const bottomCenterStyle = {
+        fontFamily: "'Times New Roman', Times, serif",
+        fontSize: isMobile ? '0.8125rem' : '0.875rem',
+        textDecoration: 'underline',
+        textDecorationThickness: '0.5px',
+        textUnderlineOffset: '3px',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+      };
+
       return (
         <div className="w-screen relative" style={{ cursor: 'none', overflow: 'hidden', position: 'fixed', inset: 0, touchAction: 'pan-y', backgroundColor: '#FAF9F6' }}
           onTouchStart={handleTouchStartSwipe} onTouchMove={handleTouchMoveMain} onTouchEnd={handleTouchEndSwipe}>
@@ -691,7 +700,7 @@
 
           <div className={`absolute inset-0 flex items-center justify-center z-50 ${showIntro ? 'opacity-100' : 'opacity-0'}`}
             style={{ transition: 'opacity 2s ease-out', pointerEvents: showIntro ? 'auto' : 'none', backgroundColor: '#FAF9F6' }}>
-            <h1 className="font-loader text-xl md:text-3xl px-4 text-center" style={{ color: '#121212' }}>{projectTitle}</h1>
+            <h1 className="font-loader text-2xl md:text-4xl px-4 text-center" style={{ color: '#121212' }}>{projectTitle}</h1>
           </div>
 
           {!showIntro && currentPhoto && (
@@ -730,8 +739,8 @@
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentBox(true); }}
                       onMouseEnter={() => setHoveredElement('share')} onMouseLeave={() => setHoveredElement(null)}
                       className="transition-all"
-                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.8125rem' : '0.875rem', color: textColor('share'), opacity: textOpacity('share'), textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
-                      Write to Image
+                      style={{ ...bottomCenterStyle, color: textColor('share'), opacity: textOpacity('share') }}>
+                      Write to image
                     </button>
                   </div>
                   <div className="flex-1 flex justify-end">
@@ -867,7 +876,7 @@
                 </svg>
               </button>
               <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 40 }}>
-                <div className="font-body" style={{ fontSize: 11, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
+                <div className="font-body" style={{ fontSize: 9, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
                   {photoComments[currentPhoto.id]?.length > 0 ? (
                     photoComments[currentPhoto.id].map((comment, idx) => (
                       <span key={idx}>{comment}{idx < photoComments[currentPhoto.id].length - 1 && ' _ '}</span>
@@ -898,7 +907,7 @@
               <div style={{
                 maxWidth: isMobile ? '88%' : '36rem',
                 margin: '0 auto',
-                padding: isMobile ? `${pagePadding + 48}px ${pagePadding}px ${pagePadding + 32}px` : `${pagePadding + 56}px ${pagePadding}px ${pagePadding + 40}px`
+                padding: isMobile ? `${pagePadding + 48}px ${pagePadding}px ${pagePadding + 80}px` : `${pagePadding + 56}px ${pagePadding}px ${pagePadding + 80}px`
               }} onClick={(e) => e.stopPropagation()}>
 
                 <h1 style={{
@@ -928,17 +937,31 @@
                   <br /><br />
                   Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.
                 </p>
+              </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? '2.5rem' : '3rem', paddingBottom: isMobile ? '1rem' : '0' }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
-                    onMouseEnter={() => setHoveredElement('backToImages')}
-                    onMouseLeave={() => setHoveredElement(null)}
-                    className="transition-all"
-                    style={{ fontFamily: "'Times New Roman', Times, serif", background: 'none', border: 'none', padding: 0, fontSize: isMobile ? '0.8125rem' : '0.875rem', color: isHovering('backToImages') ? '#111184' : '#121212', opacity: isHovering('backToImages') ? 1 : 0.7, textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px' }}>
-                    Back to Image
-                  </button>
-                </div>
+              {/* ── "Back to image" anchored at the same position as "Write to image" ── */}
+              <div style={{
+                position: 'fixed',
+                bottom: pagePadding,
+                left: 0,
+                right: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
+                  onMouseEnter={() => setHoveredElement('backToImage')}
+                  onMouseLeave={() => setHoveredElement(null)}
+                  className="transition-all"
+                  style={{
+                    ...bottomCenterStyle,
+                    color: isHovering('backToImage') ? '#111184' : '#121212',
+                    opacity: isHovering('backToImage') ? 1 : 0.7,
+                    pointerEvents: 'auto'
+                  }}>
+                  Back to image
+                </button>
               </div>
             </div>
           )}
