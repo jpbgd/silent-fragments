@@ -30,6 +30,7 @@
     body { cursor: none; }
     * { cursor: none; box-sizing: border-box; }
     button, [role="button"], a { cursor: pointer !important; }
+    .cursor-pointer-force { cursor: pointer !important; }
     img { pointer-events: none; -webkit-user-drag: none; }
     input, textarea { font-size: 17px !important; }
     #root:empty { display: none; }
@@ -697,12 +698,16 @@
           {!showIntro && currentPhoto && (
             <div className="w-full flex flex-col items-center justify-between" style={{ height: isMobile ? '100dvh' : '100%', padding: pagePadding, overflow: 'hidden', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto' }}>
               
-              <div className="w-full text-center flex-shrink-0" onClick={handleTitleClick}
-                onMouseEnter={() => setHoveredElement('title')} onMouseLeave={() => setHoveredElement(null)}
-                style={{ cursor: isHovering('title') ? 'pointer' : 'none' }}>
+              {/* ── Title: now a button so cursor: pointer !important applies ── */}
+              <button
+                className="w-full text-center flex-shrink-0 cursor-pointer-force"
+                onClick={handleTitleClick}
+                onMouseEnter={() => setHoveredElement('title')}
+                onMouseLeave={() => setHoveredElement(null)}
+                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}>
                 <h2 className="font-ui transition-all"
                   style={{ fontSize: isMobile ? '0.75rem' : '0.875rem', color: isHovering('title') ? '#111184' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
-              </div>
+              </button>
 
               <div className="flex items-center justify-center w-full"
                 style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0', cursor: isMobile ? 'default' : (isHovering('photo') ? 'pointer' : 'none') }}
@@ -961,7 +966,6 @@
   </script>
 </body>
 </html>
-
 
 
 
