@@ -614,7 +614,7 @@
               ...newPositions[targetIndex], 
               width: newWidth, 
               x: initialImagePos.current.x + (cx - initialPinchCenter.current.x), 
-              y: initialImagePos.current.y + (cy - initialPinchCenter.current.y) 
+              y: initialImagePos.current.y + (cy - initialPinchCenter.current.cy) 
             };
             setImagePositions(newPositions);
           }
@@ -875,13 +875,13 @@
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 40 }}>
+              <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 12 }}>
                 <div className="font-body" style={{ fontSize: 9, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
                   {photoComments[currentPhoto.id]?.length > 0 ? (
                     photoComments[currentPhoto.id].map((comment, idx) => (
                       <span key={idx}>{comment}{idx < photoComments[currentPhoto.id].length - 1 && ' _ '}</span>
                     ))
-                  ) : <span style={{ opacity: 0.4 }}>No thoughts shared yet</span>}
+                  ) : <span style={{ opacity: 0.4 }}>{currentPhoto.title}{currentPhoto.date ? '_' + currentPhoto.date : ''}</span>}
                 </div>
               </div>
             </div>
@@ -988,5 +988,6 @@
   </script>
 </body>
 </html>
+
 
 
