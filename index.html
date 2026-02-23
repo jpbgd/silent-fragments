@@ -197,7 +197,7 @@
           const parts = fileName.replace(/\.[^/.]+$/, "").split('_');
           return {
             id: index,
-            url: `https://raw.githubusercontent.com/${githubUser}/${githubRepo}/${githubBranch}/${fileName}`,
+            url: `${SUPABASE_URL}/storage/v1/object/public/photos/${fileName}`,
             title: parts[0] || 'Untitled',
             date: parts[1] || ''
           };
