@@ -181,8 +181,8 @@
       const DOUBLE_CLICK_THRESHOLD = 300; // ms
 
       const photoFiles = [
-        'Untitled_250619.jpg', 'Untitled_241221.jpg', 'Untitiled_241208.jpg',
-        'Untitiled_241115.jpg', 'Untitiled_240714.jpg'
+        'Untitled_250619.jpg', 'Untitled_241221.jpg', 'Untitled_241208.jpg',
+        'Untitled_241115.jpg', 'Untitled_240714.jpg'
       ];
 
       useEffect(() => {
@@ -197,7 +197,7 @@
           const parts = fileName.replace(/\.[^/.]+$/, "").split('_');
           return {
             id: index,
-            url: `${SUPABASE_URL}/storage/v1/object/public/photos/${fileName}`,
+            url: `${SUPABASE_URL}/storage/v1/object/public/Photos/${fileName}`,
             title: parts[0] || 'Untitled',
             date: parts[1] || ''
           };
@@ -988,6 +988,7 @@
   </script>
 </body>
 </html>
+
 
 
 
