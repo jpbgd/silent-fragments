@@ -35,17 +35,66 @@
     #root:empty { display: none; }
     #root { opacity: 0; animation: fadeIn 0.3s ease-in 0.1s forwards; }
     @keyframes fadeIn { to { opacity: 1; } }
-    .font-loader { font-family: 'Inter', sans-serif; font-weight: 500; letter-spacing: 0.05em; color: var(--text-dark); }
-    .font-ui { font-family: 'Inter', sans-serif; font-weight: 400; letter-spacing: 0.05em; color: var(--text-medium); }
-    .font-body { font-family: 'Times New Roman', Times, serif; letter-spacing: 0.03em; font-weight: 350; }
-    textarea::placeholder { color: #FFFFFF !important; font-family: 'Times New Roman', Times, serif; letter-spacing: 0.03em; font-size: 17px !important; opacity: 1 !important; }
-    textarea::-webkit-input-placeholder { color: #FFFFFF !important; font-size: 17px !important; opacity: 1 !important; }
-    textarea::-moz-placeholder { color: #FFFFFF !important; font-size: 17px !important; opacity: 1 !important; }
-    textarea:-ms-input-placeholder { color: #FFFFFF !important; font-size: 17px !important; opacity: 1 !important; }
-    .preface-page { animation: prefaceFadeIn 0.6s ease-out forwards; }
-    @keyframes prefaceFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    .blink-cursor { animation: blink 1s step-end infinite; font-weight: 300; }
+    
+    .font-loader {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: var(--text-dark);
+    }
+    
+    .font-ui {
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--text-medium);
+    }
+    
+    .font-body {
+      font-family: 'Times New Roman', Times, serif;
+      letter-spacing: 0.03em;
+      font-weight: 350;
+    }
+    
+    textarea::placeholder { 
+       color: #FFFFFF !important;
+       font-family: 'Times New Roman', Times, serif;
+       letter-spacing: 0.03em;
+       font-size: 17px !important;
+       opacity: 1 !important;
+    }
+    textarea::-webkit-input-placeholder { 
+      color: #FFFFFF !important; 
+      font-size: 17px !important;
+      opacity: 1 !important; 
+    }
+    textarea::-moz-placeholder { 
+      color: #FFFFFF !important; 
+      font-size: 17px !important;
+      opacity: 1 !important; 
+    }
+    textarea:-ms-input-placeholder { 
+      color: #FFFFFF !important; 
+      font-size: 17px !important;
+      opacity: 1 !important; 
+    }
+
+    .preface-page {
+      animation: prefaceFadeIn 0.6s ease-out forwards;
+    }
+    @keyframes prefaceFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .blink-cursor {
+      animation: blink 1s step-end infinite;
+      font-weight: 300;
+    }
+    /* hide native placeholder — we render a custom one */
     textarea.custom-placeholder::placeholder { color: transparent !important; }
     textarea.custom-placeholder::-webkit-input-placeholder { color: transparent !important; }
     textarea.custom-placeholder::-moz-placeholder { color: transparent !important; }
@@ -65,6 +114,8 @@
       const githubUser = "jpbgd";
       const githubRepo = "Unsilent-fragments";
       const githubBranch = "main";
+      const STORAGE_KEY = 'unsilentFragmentsComments';
+      const MAX_COMMENTS = 500;
 
       const [photos, setPhotos] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -123,11 +174,13 @@
       const textareaRef = useRef(null);
       const dissolveHeight = useRef(40);
 
+      // Double-click / double-tap tracking
       const lastPhotoClickTime = useRef(0);
       const lastPhotoTapTime = useRef(0);
       const singleTapTimer = useRef(null);
-      const DOUBLE_CLICK_THRESHOLD = 300;
+      const DOUBLE_CLICK_THRESHOLD = 300; // ms
 
+      // CAMBIO 1: nombres corregidos para coincidir con Supabase
       const photoFiles = [
         'Untitled_250619.jpg', 'Untitled_241221.jpg', 'Untitled_241208.jpg',
         'Untitled_241115.jpg', 'Untitled_240714.jpg'
@@ -145,6 +198,7 @@
           const parts = fileName.replace(/\.[^/.]+$/, "").split('_');
           return {
             id: index,
+            // CAMBIO 2: URL apunta a Supabase Storage en lugar de GitHub
             url: `${SUPABASE_URL}/storage/v1/object/public/Photos/${fileName}`,
             title: parts[0] || 'Untitled',
             date: parts[1] || ''
@@ -172,6 +226,7 @@
               .from('comments')
               .select('*')
               .order('created_at', { ascending: true });
+            
             if (data) {
               const grouped = data.reduce((acc, comment) => {
                 if (!acc[comment.photo_id]) acc[comment.photo_id] = [];
@@ -195,23 +250,35 @@
 
       useEffect(() => {
         const resetInactivity = (e) => {
-          if (showScreensaver) { setShowScreensaver(false); return; }
+          if (showScreensaver) {
+            setShowScreensaver(false);
+            return;
+          }
           if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
           inactivityTimer.current = setTimeout(() => {
             const vw = window.innerWidth, vh = window.innerHeight;
-            setScreensaverPosition({ x: Math.random() * (vw * 0.3), y: Math.random() * (vh * 0.3) });
+            setScreensaverPosition({
+              x: Math.random() * (vw * 0.3),
+              y: Math.random() * (vh * 0.3)
+            });
             setShowScreensaver(true);
           }, 15000);
         };
-        if (!showScreensaver) resetInactivity();
+        
+        if (!showScreensaver) {
+          resetInactivity();
+        }
+        
         const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
         events.forEach(event => window.addEventListener(event, resetInactivity));
+        
         return () => {
           if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
           events.forEach(event => window.removeEventListener(event, resetInactivity));
         };
       }, [showScreensaver]);
 
+      // Screensaver slow drift animation
       useEffect(() => {
         if (!showScreensaver) {
           if (driftAnimFrame.current) cancelAnimationFrame(driftAnimFrame.current);
@@ -220,6 +287,7 @@
           setScreensaverDrift({ x: 0, y: 0 });
           return;
         }
+        const vw = window.innerWidth, vh = window.innerHeight;
         const maxDrift = isMobile ? 40 : 60;
         const pickNewTarget = () => {
           screensaverDriftTarget.current = {
@@ -246,6 +314,7 @@
         };
       }, [showScreensaver, isMobile]);
 
+      // Auto-focus textarea when comment box opens
       useEffect(() => {
         if (showCommentBox && textareaRef.current && !dissolving && !showMergedMessage) {
           textareaRef.current.focus();
@@ -295,6 +364,7 @@
         setCurrentPhotoIndex(prev => (prev - 1 + randomOrder.length) % randomOrder.length);
       }, [randomOrder.length]);
 
+      // Desktop: double-click opens preface, single click advances photo
       const handlePhotoClick = useCallback(() => {
         if (!isMobile) {
           const now = Date.now();
@@ -308,12 +378,16 @@
         }
       }, [isMobile, handleNextPhoto]);
 
+      // Mobile: double-tap opens preface, single tap opens comment box
       const handlePhotoTap = useCallback(() => {
         if (justFinishedZooming.current) return;
         if (isMobile && !showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
           const now = Date.now();
           if (now - lastPhotoTapTime.current < DOUBLE_CLICK_THRESHOLD) {
-            if (singleTapTimer.current) { clearTimeout(singleTapTimer.current); singleTapTimer.current = null; }
+            if (singleTapTimer.current) {
+              clearTimeout(singleTapTimer.current);
+              singleTapTimer.current = null;
+            }
             lastPhotoTapTime.current = 0;
             setShowPreface(true);
           } else {
@@ -332,9 +406,12 @@
         if (e.touches.length === 2) {
           const t1 = e.touches[0], t2 = e.touches[1];
           const distance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-          const cx = (t1.clientX + t2.clientX) / 2, cy = (t1.clientY + t2.clientY) / 2;
+          const cx = (t1.clientX + t2.clientX) / 2;
+          const cy = (t1.clientY + t2.clientY) / 2;
           mainPinchStart.current = { distance, scale: mainPhotoZoom.scale, x: mainPhotoZoom.x, y: mainPhotoZoom.y, cx, cy };
-          setIsZooming(true); setSwipeStartX(null); return;
+          setIsZooming(true);
+          setSwipeStartX(null);
+          return;
         }
         if (e.touches.length === 1 && !isZooming) setSwipeStartX(e.touches[0].clientX);
       }, [isMobile, showCommentBox, showContactSheet, showCommentsView, mainPhotoZoom, isZooming]);
@@ -344,7 +421,8 @@
         e.preventDefault();
         const t1 = e.touches[0], t2 = e.touches[1];
         const distance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        const cx = (t1.clientX + t2.clientX) / 2, cy = (t1.clientY + t2.clientY) / 2;
+        const cx = (t1.clientX + t2.clientX) / 2;
+        const cy = (t1.clientY + t2.clientY) / 2;
         const scale = Math.max(1, Math.min(4, mainPinchStart.current.scale * (distance / mainPinchStart.current.distance)));
         const x = mainPinchStart.current.x + (cx - mainPinchStart.current.cx);
         const y = mainPinchStart.current.y + (cy - mainPinchStart.current.cy);
@@ -354,7 +432,8 @@
       const handleTouchEndSwipe = useCallback((e) => {
         if (!isMobile) return;
         if (isZooming) {
-          setIsZooming(false); setMainPhotoZoom({ scale: 1, x: 0, y: 0 });
+          setIsZooming(false);
+          setMainPhotoZoom({ scale: 1, x: 0, y: 0 });
           justFinishedZooming.current = true;
           setTimeout(() => { justFinishedZooming.current = false; }, 100);
           return;
@@ -362,7 +441,8 @@
         if (swipeStartX === null) return;
         const diff = e.changedTouches[0].clientX - swipeStartX;
         if (Math.abs(diff) > 50 && mainPhotoZoom.scale <= 1) {
-          if (diff > 0) handlePrevPhoto(); else handleNextPhoto();
+          if (diff > 0) handlePrevPhoto();
+          else handleNextPhoto();
         }
         setSwipeStartX(null);
       }, [isMobile, swipeStartX, handleNextPhoto, handlePrevPhoto, isZooming, mainPhotoZoom.scale]);
@@ -377,44 +457,71 @@
         if (!commentText.trim()) return;
         const textToSave = commentText.trim();
         const currentPhoto = photos[randomOrder[currentPhotoIndex]];
+        
         if (textareaRef.current) dissolveHeight.current = textareaRef.current.offsetHeight;
-        setDissolveText(textToSave); setDissolveOpacity(1); setDissolving(true); setCommentText('');
+
+        setDissolveText(textToSave);
+        setDissolveOpacity(1);
+        setDissolving(true);
+        setCommentText('');
+
         try {
           await supabase.from('comments').insert({
-            photo_id: currentPhoto.id, photo_title: currentPhoto.title,
-            photo_date: currentPhoto.date, comment_text: textToSave
+            photo_id: currentPhoto.id,
+            photo_title: currentPhoto.title,
+            photo_date: currentPhoto.date,
+            comment_text: textToSave
           });
-        } catch (error) { console.error('Error saving comment:', error); }
+        } catch (error) {
+          console.error('Error saving comment:', error);
+        }
+
         setPhotoComments(prev => {
           const curr = prev[currentPhoto.id] || [];
-          return { ...prev, [currentPhoto.id]: [...curr, textToSave] };
+          const newComments = [...curr, textToSave];
+          return { ...prev, [currentPhoto.id]: newComments };
         });
+
         setTimeout(() => setDissolveOpacity(0), 50);
+        
         setTimeout(() => {
-          setDissolving(false); setDissolveText('');
-          setShowMergedMessage(true); setMergedMessageOpacity(1);
+          setDissolving(false);
+          setDissolveText('');
+          setShowMergedMessage(true);
+          setMergedMessageOpacity(1);
           setTimeout(() => {
             setMergedMessageOpacity(0);
-            setTimeout(() => { setShowMergedMessage(false); setShowCommentBox(false); }, 500);
+            setTimeout(() => {
+              setShowMergedMessage(false);
+              setShowCommentBox(false);
+            }, 500);
           }, 2500);
         }, 2050);
       };
 
       const handleCommentBoxOutsideClick = useCallback((e) => {
         if (commentBoxRef.current && !commentBoxRef.current.contains(e.target)) {
-          if (!dissolving && !showMergedMessage) { setShowCommentBox(false); setCommentText(''); }
+          if (!dissolving && !showMergedMessage) {
+            setShowCommentBox(false);
+            setCommentText('');
+          }
         }
       }, [dissolving, showMergedMessage]);
 
       const handleCloseCommentBox = () => {
-        if (!dissolving && !showMergedMessage) { setShowCommentBox(false); setCommentText(''); }
+        if (!dissolving && !showMergedMessage) {
+          setShowCommentBox(false);
+          setCommentText('');
+        }
       };
 
       const handleImageMouseDown = (e, index) => {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
         lastClickTime.current = Date.now();
         longPressTimer.current = setTimeout(() => {
-          isLongPress.current = true; wasDragging.current = true;
+          isLongPress.current = true;
+          wasDragging.current = true;
           setDragOffset({ x: e.clientX - imagePositions[index].x, y: e.clientY - imagePositions[index].y });
           setDraggingIndex(index);
           setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
@@ -424,10 +531,12 @@
       const handleImageMouseUp = (e, index) => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
         if (draggingIndex === index) {
-          e.stopPropagation(); setDraggingIndex(null);
+          e.stopPropagation();
+          setDraggingIndex(null);
           setTimeout(() => { wasDragging.current = false; isLongPress.current = false; }, 50);
         } else if (Date.now() - lastClickTime.current < 200 && !isLongPress.current && !wasDragging.current) {
-          setCurrentPhotoIndex(randomOrder.indexOf(index)); setShowContactSheet(false);
+          setCurrentPhotoIndex(randomOrder.indexOf(index));
+          setShowContactSheet(false);
         }
       };
 
@@ -444,12 +553,16 @@
         };
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleUp);
-        return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
+        return () => {
+          window.removeEventListener('mousemove', handleMove);
+          window.removeEventListener('mouseup', handleUp);
+        };
       }, [draggingIndex, dragOffset, imagePositions]);
 
       const handleImageTouchStart = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
+        
         if (e.touches.length === 2 && (activeImageIndex === null || activeImageIndex === index)) {
           e.preventDefault();
           const t1 = e.touches[0], t2 = e.touches[1];
@@ -457,46 +570,59 @@
           initialImageWidth.current = imagePositions[index]?.width || 100;
           initialPinchCenter.current = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
           initialImagePos.current = { x: imagePositions[index]?.x || 0, y: imagePositions[index]?.y || 0 };
-          setPinchingIndex(index); setActiveImageIndex(index); setDraggingIndex(null);
+          setPinchingIndex(index);
+          setActiveImageIndex(index);
+          setDraggingIndex(null);
           setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
           return;
         }
+
         const touch = e.touches[0];
-        e.target._touchStartX = touch.clientX; e.target._touchStartY = touch.clientY; e.target._touchStartTime = Date.now();
+        e.target._touchStartX = touch.clientX;
+        e.target._touchStartY = touch.clientY;
+        e.target._touchStartTime = Date.now();
+
         setDragOffset({ x: touch.clientX - imagePositions[index].x, y: touch.clientY - imagePositions[index].y });
-        setDraggingIndex(index); setActiveImageIndex(index);
+        setDraggingIndex(index);
+        setActiveImageIndex(index);
         setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
       };
 
       const handleImageTouchMove = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
+        
         if (e.touches.length === 2) {
           e.preventDefault();
           const targetIndex = activeImageIndex !== null ? activeImageIndex : index;
           setDraggingIndex(null);
+          
           const t1 = e.touches[0], t2 = e.touches[1];
           const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
           const cx = (t1.clientX + t2.clientX) / 2, cy = (t1.clientY + t2.clientY) / 2;
+          
           if (pinchingIndex !== targetIndex) {
             initialPinchDistance.current = dist;
             initialImageWidth.current = imagePositions[targetIndex]?.width || 100;
             initialPinchCenter.current = { x: cx, y: cy };
             initialImagePos.current = { x: imagePositions[targetIndex]?.x || 0, y: imagePositions[targetIndex]?.y || 0 };
-            setPinchingIndex(targetIndex); setActiveImageIndex(targetIndex);
+            setPinchingIndex(targetIndex);
+            setActiveImageIndex(targetIndex);
             setZIndexOrder(prev => [...prev.filter(i => i !== targetIndex), targetIndex]);
           } else {
             const scale = dist / initialPinchDistance.current;
             const newWidth = Math.max(60, initialImageWidth.current * scale);
             const newPositions = [...imagePositions];
-            newPositions[targetIndex] = {
-              ...newPositions[targetIndex], width: newWidth,
-              x: initialImagePos.current.x + (cx - initialPinchCenter.current.x),
-              y: initialImagePos.current.y + (cy - initialPinchCenter.current.y)
+            newPositions[targetIndex] = { 
+              ...newPositions[targetIndex], 
+              width: newWidth, 
+              x: initialImagePos.current.x + (cx - initialPinchCenter.current.x), 
+              y: initialImagePos.current.y + (cy - initialPinchCenter.current.cy) 
             };
             setImagePositions(newPositions);
           }
           return;
         }
+
         if (draggingIndex === index && e.touches.length === 1) {
           e.preventDefault();
           const touch = e.touches[0];
@@ -508,16 +634,27 @@
 
       const handleImageTouchEnd = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
-        if (pinchingIndex === index) { setPinchingIndex(null); setActiveImageIndex(null); return; }
+        
+        if (pinchingIndex === index) {
+          setPinchingIndex(null);
+          setActiveImageIndex(null);
+          return;
+        }
+        
         const diffX = Math.abs((e.changedTouches[0]?.clientX || 0) - (e.target._touchStartX || 0));
         const diffY = Math.abs((e.changedTouches[0]?.clientY || 0) - (e.target._touchStartY || 0));
         const duration = Date.now() - (e.target._touchStartTime || 0);
+        
         if (diffX < 10 && diffY < 10 && duration < 200) {
-          setDraggingIndex(null); setActiveImageIndex(null);
-          setCurrentPhotoIndex(randomOrder.indexOf(index)); setShowContactSheet(false);
+          setDraggingIndex(null);
+          setActiveImageIndex(null);
+          setCurrentPhotoIndex(randomOrder.indexOf(index));
+          setShowContactSheet(false);
           return;
         }
-        setDraggingIndex(null); setActiveImageIndex(null);
+        
+        setDraggingIndex(null);
+        setActiveImageIndex(null);
       };
 
       if (loading || !photos.length || !randomOrder.length) {
@@ -533,7 +670,10 @@
 
       const CustomCursor = ({ isClickable }) => (
         isClickable ? null : (
-          <div className="fixed pointer-events-none" style={{ left: cursorPosition.x, top: cursorPosition.y, transform: 'translate(-50%, -50%)', width: 20, height: 20, zIndex: 10000 }}>
+          <div className="fixed pointer-events-none" style={{
+            left: cursorPosition.x, top: cursorPosition.y, transform: 'translate(-50%, -50%)',
+            width: 20, height: 20, zIndex: 10000
+          }}>
             <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, background: '#1A1A1A', transform: 'translateY(-50%)' }} />
             <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: '#1A1A1A', transform: 'translateX(-50%)' }} />
           </div>
@@ -541,11 +681,18 @@
       );
 
       const pagePadding = isMobile ? 12 : 24;
+
+      // Shared bottom-center button style — same position as "Write to image"
       const bottomCenterStyle = {
         fontFamily: "'Times New Roman', Times, serif",
         fontSize: isMobile ? '0.8125rem' : '0.875rem',
-        textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px',
-        background: 'none', border: 'none', padding: 0,
+        textDecoration: 'underline',
+        textDecorationThickness: '0.5px',
+        textUnderlineOffset: '3px',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
       };
 
       return (
@@ -556,21 +703,27 @@
 
           <div className={`absolute inset-0 flex items-center justify-center z-50 ${showIntro ? 'opacity-100' : 'opacity-0'}`}
             style={{ transition: 'opacity 2s ease-out', pointerEvents: showIntro ? 'auto' : 'none', backgroundColor: '#FAF9F6' }}>
-            <h1 className="font-loader text-2xl md:text-4xl px-4 text-center" style={{ color: '#121212' }}>Silent Fragments</h1>
+            <h1 className="font-loader text-2xl md:text-4xl px-4 text-center" style={{ color: '#121212' }}>{projectTitle}</h1>
           </div>
 
           {!showIntro && currentPhoto && (
             <div className="w-full flex flex-col items-center justify-between" style={{ height: isMobile ? '100dvh' : '100%', padding: pagePadding, overflow: 'hidden', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto' }}>
-              <button className="w-full text-center flex-shrink-0" onClick={handleTitleClick}
-                onMouseEnter={() => setHoveredElement('title')} onMouseLeave={() => setHoveredElement(null)}
-                style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}>
-                <h2 className="font-ui transition-all" style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: isHovering('title') ? '#111184' : '#121212', opacity: textOpacity('title') }}>Silent Fragments</h2>
+              
+              {/* ── Title ── */}
+              <button
+                className="w-full text-center flex-shrink-0 cursor-pointer-force"
+                onClick={handleTitleClick}
+                onMouseEnter={() => setHoveredElement('title')}
+                onMouseLeave={() => setHoveredElement(null)}
+                style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: isHovering('title') ? 'pointer' : 'none' }}>
+
+                <h2 className="font-ui transition-all"
+                  style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: isHovering('title') ? '#111184' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
               </button>
 
               <div className="flex items-center justify-center w-full"
-                style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0' }}
-                onClick={isMobile && mainPhotoZoom.scale <= 1 ? handlePhotoTap : handlePhotoClick}
-                onMouseEnter={() => !isMobile && setHoveredElement('photo')} onMouseLeave={() => !isMobile && setHoveredElement(null)}>
+                style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0', cursor: isMobile ? 'default' : (isHovering('photo') ? 'pointer' : 'none') }}
+                onClick={isMobile && mainPhotoZoom.scale <= 1 ? handlePhotoTap : handlePhotoClick} onMouseEnter={() => !isMobile && setHoveredElement('photo')} onMouseLeave={() => !isMobile && setHoveredElement(null)}>
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none', transform: `translate(${mainPhotoZoom.x}px, ${mainPhotoZoom.y}px) scale(${mainPhotoZoom.scale})`, transition: isZooming ? 'none' : 'transform 0.2s ease-out' }} />
               </div>
@@ -580,7 +733,7 @@
                   <div className="flex-1 flex justify-start">
                     <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(true); }}
                       onMouseEnter={() => setHoveredElement('contact')} onMouseLeave={() => setHoveredElement(null)}
-                      className="transition-all" style={{ color: textColor('contact'), opacity: textOpacity('contact'), padding: '12px', margin: '-12px', lineHeight: 1 }}>
+                      className="transition-all" style={{ color: textColor('contact'), opacity: textOpacity('contact'), padding: '12px', margin: '-12px', verticalAlign: 'baseline', lineHeight: 1, cursor: isHovering('contact') ? 'pointer' : 'none' }}>
                       <svg style={{ width: isMobile ? '1rem' : '1.125rem', height: isMobile ? '1rem' : '1.125rem' }} viewBox="0 0 24 24" fill="currentColor">
                         <circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="7" r="2.5"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2.5"/>
                       </svg>
@@ -589,7 +742,8 @@
                   <div className="flex-1 flex justify-center">
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentBox(true); }}
                       onMouseEnter={() => setHoveredElement('share')} onMouseLeave={() => setHoveredElement(null)}
-                      className="transition-all" style={{ ...bottomCenterStyle, color: textColor('share'), opacity: textOpacity('share') }}>
+                      className="transition-all"
+                      style={{ ...bottomCenterStyle, color: textColor('share'), opacity: textOpacity('share') }}>
                       Write to image
                     </button>
                   </div>
@@ -597,7 +751,7 @@
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(true); }}
                       onMouseEnter={() => setHoveredElement('photoTitle')} onMouseLeave={() => setHoveredElement(null)}
                       className="transition-all text-right"
-                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.625rem' : '0.6875rem', color: textColor('photoTitle'), opacity: textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px', letterSpacing: '0.03em', fontVariantNumeric: 'oldstyle-nums' }}>
+                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.625rem' : '0.6875rem', color: textColor('photoTitle'), opacity: textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px', letterSpacing: '0.03em', fontVariantNumeric: 'oldstyle-nums', cursor: isHovering('photoTitle') ? 'pointer' : 'none' }}>
                       {currentPhoto.date}
                     </button>
                   </div>
@@ -610,19 +764,24 @@
             <div className="fixed z-50" onClick={handleCommentBoxOutsideClick}
               style={{ inset: 0, backgroundColor: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div ref={commentBoxRef} style={{ width: '90%', maxWidth: isMobile ? '100%' : '42rem', textAlign: 'center', padding: isMobile ? '0 10px' : '0 20px', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                
                 {!showMergedMessage && !dissolving && (
                   <button onClick={handleCloseCommentBox}
                     onMouseEnter={() => setHoveredElement('closeComment')} onMouseLeave={() => setHoveredElement(null)}
-                    className="absolute transition-all"
+                    className="absolute transition-all" 
                     style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#111184' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 40 }}>
                   {!showMergedMessage && !dissolving && (
                     <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
                       <textarea ref={textareaRef} value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="" className="font-body custom-placeholder"
+                        placeholder=""
+                        className="font-body custom-placeholder"
                         spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
                         data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
                         style={{ width: '100%', height: 'auto', minHeight: isMobile ? 90 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2, padding: '10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff', display: 'block' }} />
@@ -642,13 +801,14 @@
                   )}
                   {showMergedMessage && (
                     <p className="font-body" style={{ position: 'absolute', margin: 0, fontSize: '17px', fontWeight: 400, lineHeight: 1.1, color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.4)', opacity: mergedMessageOpacity, transition: 'opacity 0.5s ease-out' }}>
-                      Gracias. The image speaks through you now.
+                      Gracias. The image speaks through you now. 
                     </p>
                   )}
                 </div>
                 {!showMergedMessage && !dissolving && (
                   <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <button onClick={handleSubmitComment} onMouseEnter={() => setHoveredElement('submit')} onMouseLeave={() => setHoveredElement(null)}
+                      className=""
                       style={{ fontFamily: "'Times New Roman', Times, serif", background: 'none', border: 'none', padding: 8, cursor: 'pointer', color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '0.8125rem' : '0.875rem', textDecoration: 'underline', textDecorationThickness: '0.5px', textUnderlineOffset: '3px', transition: 'opacity 0.2s', opacity: !isMobile && isHovering('submit') ? 0.7 : 1 }}>
                       Send
                     </button>
@@ -664,9 +824,11 @@
               {!isMobile && <CustomCursor isClickable={hoveredElement !== null || hoveredThumbnail !== null} />}
               <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(false); }}
                 onMouseEnter={() => setHoveredElement('closeContact')} onMouseLeave={() => setHoveredElement(null)}
-                className="absolute z-[60] transition-all"
+                className="absolute z-[60] transition-all" 
                 style={{ top: pagePadding, right: pagePadding, color: isHovering('closeContact') ? '#111184' : '#121212', opacity: isHovering('closeContact') ? 1 : 0.5 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
               <p className="absolute left-1/2 transform -translate-x-1/2 z-[60]"
                 style={{ fontFamily: "'Times New Roman', Times, serif", bottom: pagePadding, pointerEvents: 'none', fontSize: isMobile ? '0.8125rem' : '0.875rem', opacity: 0.7, color: '#121212' }}>
@@ -679,6 +841,7 @@
                   const isOtherHovered = hoveredThumbnail !== null && hoveredThumbnail !== index;
                   const isDragging = draggingIndex === index;
                   const zIndex = zIndexOrder.indexOf(index) + 1;
+                  
                   return (
                     <div key={photo.id} className="absolute" style={{
                       left: pos.x, top: pos.y, width: pos.width,
@@ -712,7 +875,9 @@
               <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(false); }}
                 onMouseEnter={() => setHoveredElement('closeComments')} onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all" style={{ top: pagePadding - 10, right: pagePadding, color: isHovering('closeComments') ? '#111184' : '#121212', opacity: isHovering('closeComments') ? 1 : 0.5 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
               <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 12 }}>
                 <div className="font-body" style={{ fontSize: 9, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
@@ -726,31 +891,79 @@
             </div>
           )}
 
+          {/* ── Preface page ── */}
           {showPreface && (
             <div className="preface-page fixed inset-0 z-50 overflow-auto" style={{ backgroundColor: '#FAF9F6', cursor: isMobile ? 'auto' : 'none' }}
               onClick={() => setShowPreface(false)}>
               {!isMobile && <CustomCursor isClickable={hoveredElement !== null} />}
-              <button onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
-                onMouseEnter={() => setHoveredElement('closePreface')} onMouseLeave={() => setHoveredElement(null)}
+
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
+                onMouseEnter={() => setHoveredElement('closePreface')}
+                onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all"
                 style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#111184' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <div style={{ maxWidth: isMobile ? '88%' : '36rem', margin: '0 auto', padding: isMobile ? `${pagePadding + 48}px ${pagePadding}px ${pagePadding + 80}px` : `${pagePadding + 56}px ${pagePadding}px ${pagePadding + 80}px` }} onClick={(e) => e.stopPropagation()}>
-                <h1 style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '1.125rem' : '1.25rem', fontWeight: 400, letterSpacing: '0.04em', color: '#121212', textAlign: 'center', marginBottom: isMobile ? '2rem' : '2.5rem', opacity: 0.85 }}>
+
+              <div style={{
+                maxWidth: isMobile ? '88%' : '36rem',
+                margin: '0 auto',
+                padding: isMobile ? `${pagePadding + 48}px ${pagePadding}px ${pagePadding + 80}px` : `${pagePadding + 56}px ${pagePadding}px ${pagePadding + 80}px`
+              }} onClick={(e) => e.stopPropagation()}>
+
+                <h1 style={{
+                  fontFamily: "'Times New Roman', Times, serif",
+                  fontSize: isMobile ? '1.125rem' : '1.25rem',
+                  fontWeight: 400,
+                  letterSpacing: '0.04em',
+                  color: '#121212',
+                  textAlign: 'center',
+                  marginBottom: isMobile ? '2rem' : '2.5rem',
+                  opacity: 0.85
+                }}>
                   Preface
                 </h1>
-                <p style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.875rem' : '0.9375rem', fontWeight: 400, lineHeight: 1.75, color: '#121212', opacity: 0.7, textAlign: 'left', margin: 0 }}>
+
+                <p style={{
+                  fontFamily: "'Times New Roman', Times, serif",
+                  fontSize: isMobile ? '0.875rem' : '0.9375rem',
+                  fontWeight: 400,
+                  lineHeight: 1.75,
+                  color: '#121212',
+                  opacity: 0.7,
+                  textAlign: 'left',
+                  margin: 0
+                }}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                   <br /><br />
                   Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.
                 </p>
               </div>
-              <div style={{ position: 'fixed', bottom: pagePadding, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-                <button onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
-                  onMouseEnter={() => setHoveredElement('backToImage')} onMouseLeave={() => setHoveredElement(null)}
+
+              {/* ── "Back to image" anchored at the same position as "Write to image" ── */}
+              <div style={{
+                position: 'fixed',
+                bottom: pagePadding,
+                left: 0,
+                right: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowPreface(false); }}
+                  onMouseEnter={() => setHoveredElement('backToImage')}
+                  onMouseLeave={() => setHoveredElement(null)}
                   className="transition-all"
-                  style={{ ...bottomCenterStyle, color: isHovering('backToImage') ? '#111184' : '#121212', opacity: isHovering('backToImage') ? 1 : 0.7, pointerEvents: 'auto' }}>
+                  style={{
+                    ...bottomCenterStyle,
+                    color: isHovering('backToImage') ? '#111184' : '#121212',
+                    opacity: isHovering('backToImage') ? 1 : 0.7,
+                    pointerEvents: 'auto'
+                  }}>
                   Back to image
                 </button>
               </div>
@@ -759,7 +972,12 @@
 
           {showScreensaver && (
             <div className="fixed inset-0 z-[200]" style={{ backgroundColor: 'rgba(250,249,246,0.95)' }} onClick={() => setShowScreensaver(false)}>
-              <video autoPlay loop muted playsInline webkit-playsinline="true"
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                webkit-playsinline="true"
                 ref={(el) => { if (el) el.play().catch(() => {}); }}
                 style={{ position: 'absolute', left: screensaverPosition.x + screensaverDrift.x, top: screensaverPosition.y + screensaverDrift.y, width: isMobile ? '50%' : '70%', height: 'auto', maxHeight: isMobile ? '50%' : '70%', objectFit: 'contain' }}>
                 <source src={`https://raw.githubusercontent.com/${githubUser}/${githubRepo}/${githubBranch}/Paramo.mp4`} type="video/mp4" />
@@ -774,6 +992,5 @@
   </script>
 </body>
 </html>
-
 
 
