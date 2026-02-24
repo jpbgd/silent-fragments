@@ -980,7 +980,7 @@
                 webkit-playsinline="true"
                 ref={(el) => { if (el) el.play().catch(() => {}); }}
                 style={{ position: 'absolute', left: screensaverPosition.x + screensaverDrift.x, top: screensaverPosition.y + screensaverDrift.y, width: isMobile ? '50%' : '70%', height: 'auto', maxHeight: isMobile ? '50%' : '70%', objectFit: 'contain' }}>
-                <source src={`https://raw.githubusercontent.com/${githubUser}/${githubRepo}/${githubBranch}/Paramo.mp4`} type="video/mp4" />
+                <source src="https://edcjpwijpnzokwhuclzh.supabase.co/storage/v1/object/public/Photos/Paramo.mp4" type="video/mp4" />
               </video>
             </div>
           )}
