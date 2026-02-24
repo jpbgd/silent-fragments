@@ -691,7 +691,7 @@
       };
 
       return (
-        <div className="w-screen relative" style={{ cursor: 'none', overflow: 'hidden', position: 'fixed', inset: 0, touchAction: 'pan-y', backgroundColor: '#FAF9F6' }}
+        <div className="w-screen relative" style={{ overflow: 'hidden', position: 'fixed', inset: 0, touchAction: 'pan-y', backgroundColor: '#FAF9F6' }}
           onTouchStart={handleTouchStartSwipe} onTouchMove={handleTouchMoveMain} onTouchEnd={handleTouchEndSwipe}>
           
           {!isMobile && <CustomCursor isClickable={hoveredElement !== null} />}
