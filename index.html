@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root { 
-      --accent-blue: #111184; 
+      --accent-blue: #0F4C81; 
       --text-dark: #121212;
       --text-medium: #121212;
       --bg-cream: #FAF9F6;
@@ -666,7 +666,7 @@
 
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
       const isHovering = (el) => hoveredElement === el;
-      const textColor = (el) => isHovering(el) ? '#111184' : '#121212';
+      const textColor = (el) => isHovering(el) ? '#0F4C81' : '#121212';
       const textOpacity = (el) => isHovering(el) ? 1 : 0.7;
 
       const CustomCursor = ({ isClickable }) => (
@@ -719,7 +719,7 @@
                 style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: isHovering('title') ? 'pointer' : 'none' }}>
 
                 <h2 className="font-ui transition-all"
-                  style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: isHovering('title') ? '#111184' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
+                  style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: isHovering('title') ? '##0F4C81' : '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
               </button>
 
               <div className="flex items-center justify-center w-full"
@@ -770,7 +770,7 @@
                   <button onClick={handleCloseCommentBox}
                     onMouseEnter={() => setHoveredElement('closeComment')} onMouseLeave={() => setHoveredElement(null)}
                     className="absolute transition-all" 
-                    style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#111184' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
+                    style={{ top: -30, right: isMobile ? 5 : 'calc(15% - 10px)', color: isHovering('closeComment') ? '#0F4C81' : 'rgba(255,255,255,0.7)', opacity: isHovering('closeComment') ? 1 : 0.7 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -826,7 +826,7 @@
               <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(false); }}
                 onMouseEnter={() => setHoveredElement('closeContact')} onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all" 
-                style={{ top: pagePadding, right: pagePadding, color: isHovering('closeContact') ? '#111184' : '#121212', opacity: isHovering('closeContact') ? 1 : 0.5 }}>
+                style={{ top: pagePadding, right: pagePadding, color: isHovering('closeContact') ? '#0F4C81' : '#121212', opacity: isHovering('closeContact') ? 1 : 0.5 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -875,7 +875,7 @@
               {!isMobile && <CustomCursor isClickable={hoveredElement !== null} />}
               <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(false); }}
                 onMouseEnter={() => setHoveredElement('closeComments')} onMouseLeave={() => setHoveredElement(null)}
-                className="absolute z-[60] transition-all" style={{ top: pagePadding - 10, right: pagePadding, color: isHovering('closeComments') ? '#111184' : '#121212', opacity: isHovering('closeComments') ? 1 : 0.5 }}>
+                className="absolute z-[60] transition-all" style={{ top: pagePadding - 10, right: pagePadding, color: isHovering('closeComments') ? '#0F4C81' : '#121212', opacity: isHovering('closeComments') ? 1 : 0.5 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -903,7 +903,7 @@
                 onMouseEnter={() => setHoveredElement('closePreface')}
                 onMouseLeave={() => setHoveredElement(null)}
                 className="absolute z-[60] transition-all"
-                style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#111184' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
+                style={{ top: pagePadding, right: pagePadding, color: isHovering('closePreface') ? '#0F4C81' : '#121212', opacity: isHovering('closePreface') ? 1 : 0.5 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -961,7 +961,7 @@
                   className="transition-all"
                   style={{
                     ...bottomCenterStyle,
-                    color: isHovering('backToImage') ? '#111184' : '#121212',
+                    color: isHovering('backToImage') ? '#0F4C81' : '#121212',
                     opacity: isHovering('backToImage') ? 1 : 0.7,
                     pointerEvents: 'auto'
                   }}>
