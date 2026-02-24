@@ -660,7 +660,6 @@
 
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
       const isHovering = (el) => hoveredElement === el;
-      // CHANGE 1: All hovers are now black (#121212)
       const textColor = (el) => '#121212';
       const textOpacity = (el) => isHovering(el) ? 1 : 0.7;
 
@@ -705,15 +704,14 @@
             <div className="w-full flex flex-col items-center justify-between" style={{ height: isMobile ? '100dvh' : '100%', padding: pagePadding, overflow: 'hidden', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto' }}>
               
               {/* ── Title ── */}
-              {/* CHANGE 3a: cursor always pointer on title button */}
               <button
                 className="w-full text-center flex-shrink-0"
                 onClick={handleTitleClick}
-                onMouseEnter={() => setHoveredElement('title')}
-                onMouseLeave={() => setHoveredElement(null)}
+                onMouseEnter={() => !isMobile && setHoveredElement('title')}
+                onMouseLeave={() => !isMobile && setHoveredElement(null)}
                 style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}>
                 <h2 className="font-ui transition-all"
-                  style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: '#121212', opacity: textOpacity('title') }}>{projectTitle}</h2>
+                  style={{ fontSize: isMobile ? '0.8125rem' : '0.9375rem', color: '#121212', opacity: isMobile ? 0.7 : textOpacity('title') }}>{projectTitle}</h2>
               </button>
 
               <div className="flex items-center justify-center w-full"
@@ -726,10 +724,9 @@
               <div className="w-full flex-shrink-0" style={{ position: 'relative', zIndex: 5 }} onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-end w-full">
                   <div className="flex-1 flex justify-start">
-                    {/* CHANGE 3b: cursor always pointer on dots button */}
                     <button onClick={(e) => { e.stopPropagation(); setShowContactSheet(true); }}
-                      onMouseEnter={() => setHoveredElement('contact')} onMouseLeave={() => setHoveredElement(null)}
-                      className="transition-all" style={{ color: textColor('contact'), opacity: textOpacity('contact'), padding: '12px', margin: '-12px', verticalAlign: 'baseline', lineHeight: 1, cursor: 'pointer' }}>
+                      onMouseEnter={() => !isMobile && setHoveredElement('contact')} onMouseLeave={() => !isMobile && setHoveredElement(null)}
+                      className="transition-all" style={{ color: textColor('contact'), opacity: isMobile ? 0.7 : textOpacity('contact'), padding: '12px', margin: '-12px', verticalAlign: 'baseline', lineHeight: 1, cursor: 'pointer' }}>
                       <svg style={{ width: isMobile ? '1rem' : '1.125rem', height: isMobile ? '1rem' : '1.125rem' }} viewBox="0 0 24 24" fill="currentColor">
                         <circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="7" r="2.5"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2.5"/>
                       </svg>
@@ -737,17 +734,17 @@
                   </div>
                   <div className="flex-1 flex justify-center">
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentBox(true); }}
-                      onMouseEnter={() => setHoveredElement('share')} onMouseLeave={() => setHoveredElement(null)}
+                      onMouseEnter={() => !isMobile && setHoveredElement('share')} onMouseLeave={() => !isMobile && setHoveredElement(null)}
                       className="transition-all"
-                      style={{ ...bottomCenterStyle, color: textColor('share'), opacity: textOpacity('share') }}>
+                      style={{ ...bottomCenterStyle, color: textColor('share'), opacity: isMobile ? 0.7 : textOpacity('share') }}>
                       Write to image
                     </button>
                   </div>
                   <div className="flex-1 flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); setShowCommentsView(true); }}
-                      onMouseEnter={() => setHoveredElement('photoTitle')} onMouseLeave={() => setHoveredElement(null)}
+                      onMouseEnter={() => !isMobile && setHoveredElement('photoTitle')} onMouseLeave={() => !isMobile && setHoveredElement(null)}
                       className="transition-all text-right"
-                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.625rem' : '0.6875rem', color: textColor('photoTitle'), opacity: textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px', letterSpacing: '0.03em', fontVariantNumeric: 'oldstyle-nums', cursor: 'pointer' }}>
+                      style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: isMobile ? '0.625rem' : '0.6875rem', color: textColor('photoTitle'), opacity: isMobile ? 0.7 : textOpacity('photoTitle'), background: 'none', border: 'none', padding: '4px', margin: '-4px', letterSpacing: '0.03em', cursor: 'pointer' }}>
                       {currentPhoto.date}
                     </button>
                   </div>
@@ -876,7 +873,6 @@
                 </svg>
               </button>
               <div className="w-full h-full overflow-auto" style={{ padding: pagePadding, paddingTop: pagePadding + 12 }}>
-                {/* CHANGE 2: Always show photo title first, then "_", then comments */}
                 <div className="font-body" style={{ fontSize: 9, lineHeight: 1.2, color: '#121212', opacity: 0.7, wordWrap: 'break-word' }}>
                   <span>{currentPhoto.title}</span>
                   {photoComments[currentPhoto.id]?.length > 0 && (
