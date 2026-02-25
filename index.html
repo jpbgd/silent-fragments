@@ -318,6 +318,14 @@
         }
       }, [showCommentBox, dissolving, showMergedMessage]);
 
+      // FIX 1: Reset main photo zoom when closing contact sheet
+      useEffect(() => {
+        if (!showContactSheet) {
+          setMainPhotoZoom({ scale: 1, x: 0, y: 0 });
+          setIsZooming(false);
+        }
+      }, [showContactSheet]);
+
       const initializePositions = useCallback(() => {
         if (!photos.length) return;
         const isMobileView = window.innerWidth <= 768;
@@ -411,8 +419,9 @@
         if (e.touches.length === 1 && !isZooming) setSwipeStartX(e.touches[0].clientX);
       }, [isMobile, showCommentBox, showContactSheet, showCommentsView, mainPhotoZoom, isZooming]);
 
+      // FIX 2: guard showContactSheet so gallery pinch never writes to main photo zoom
       const handleTouchMoveMain = useCallback((e) => {
-        if (!isMobile || e.touches.length !== 2) return;
+        if (!isMobile || showContactSheet || e.touches.length !== 2) return;
         e.preventDefault();
         const t1 = e.touches[0], t2 = e.touches[1];
         const distance = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -422,10 +431,11 @@
         const x = mainPinchStart.current.x + (cx - mainPinchStart.current.cx);
         const y = mainPinchStart.current.y + (cy - mainPinchStart.current.cy);
         setMainPhotoZoom({ scale, x, y });
-      }, [isMobile]);
+      }, [isMobile, showContactSheet]);
 
+      // FIX 3: guard showContactSheet so gallery touch-end never triggers main swipe/zoom logic
       const handleTouchEndSwipe = useCallback((e) => {
-        if (!isMobile) return;
+        if (!isMobile || showContactSheet) return;
         if (isZooming) {
           setIsZooming(false);
           setMainPhotoZoom({ scale: 1, x: 0, y: 0 });
@@ -440,7 +450,7 @@
           else handleNextPhoto();
         }
         setSwipeStartX(null);
-      }, [isMobile, swipeStartX, handleNextPhoto, handlePrevPhoto, isZooming, mainPhotoZoom.scale]);
+      }, [isMobile, showContactSheet, swipeStartX, handleNextPhoto, handlePrevPhoto, isZooming, mainPhotoZoom.scale]);
 
       const handleTitleClick = (e) => {
         e.stopPropagation();
