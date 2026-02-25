@@ -463,12 +463,7 @@
           setTimeout(() => {
             if (diff > 0) handlePrevPhoto(); else handleNextPhoto();
             setSwipeTransition(false);
-            setSwipeOffset(diff > 0 ? -40 : 40);
-            setTimeout(() => {
-              setSwipeTransition(true);
-              setSwipeOffset(0);
-              setTimeout(() => setSwipeTransition(false), 240);
-            }, 20);
+            setSwipeOffset(0);
           }, 200);
         } else {
           setSwipeTransition(true);
@@ -755,7 +750,7 @@
                 onClick={isMobile && mainPhotoZoom.scale <= 1 ? handlePhotoTap : handlePhotoClick} onMouseEnter={() => !isMobile && setHoveredElement('photo')} onMouseLeave={() => !isMobile && setHoveredElement(null)}>
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none',
-                    transform: `translate(${mainPhotoZoom.x + swipeOffset}px, ${mainPhotoZoom.y}px) scale(${mainPhotoZoom.scale})`,
+                    transform: `translate(${mainPhotoZoom.x + swipeOffset}px, ${mainPhotoZoom.y + Math.abs(swipeOffset) * 0.08}px) rotate(${swipeOffset * 0.045}deg) scale(${mainPhotoZoom.scale})`,
                     transition: isZooming ? 'none' : swipeTransition ? 'transform 0.22s ease-out' : 'none'
                   }} />
               </div>
