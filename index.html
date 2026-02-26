@@ -461,7 +461,7 @@
           setSwipeTransition(true);
           setSwipeOffset(exitOffset);
           setTimeout(() => {
-            if (diff > 0) handlePrevPhoto(); else handleNextPhoto();
+            if (diff > 0) handleNextPhoto(); else handlePrevPhoto();
             setSwipeTransition(false);
             setSwipeOffset(0);
           }, 160);
@@ -693,8 +693,8 @@
 
       // PEEK: photo underneath during swipe
       const peekPhotoIndex = swipeOffset > 0
-        ? (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length
-        : (currentPhotoIndex + 1) % randomOrder.length;
+       ? (currentPhotoIndex + 1) % randomOrder.length
+       : (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length;
       const peekPhoto = photos[randomOrder[peekPhotoIndex]];
 
       const isHovering = (el) => hoveredElement === el;
