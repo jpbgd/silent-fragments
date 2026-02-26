@@ -440,7 +440,7 @@
           setMainPhotoZoom({ scale, x, y });
         } else if (e.touches.length === 1 && swipeStartX !== null && mainPhotoZoom.scale <= 1) {
           const dx = e.touches[0].clientX - swipeStartX;
-          setSwipeOffset(Math.sign(dx) * Math.min(Math.abs(dx) * 0.22, 28));
+          setSwipeOffset(dx);
         }
       }, [isMobile, showContactSheet, swipeStartX, mainPhotoZoom.scale]);
 
@@ -457,14 +457,14 @@
         if (swipeStartX === null) return;
         const diff = e.changedTouches[0].clientX - swipeStartX;
         if (Math.abs(diff) > 50 && mainPhotoZoom.scale <= 1) {
-          const exitOffset = diff > 0 ? 55 : -55;
+          const exitOffset = diff > 0 ? window.innerWidth * 0.75 : -window.innerWidth * 0.75;
           setSwipeTransition(true);
           setSwipeOffset(exitOffset);
           setTimeout(() => {
             if (diff > 0) handlePrevPhoto(); else handleNextPhoto();
             setSwipeTransition(false);
             setSwipeOffset(0);
-          }, 200);
+          }, 160);
         } else {
           setSwipeTransition(true);
           setSwipeOffset(0);
@@ -763,11 +763,11 @@
                       boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none', zIndex: 0 }} />
                 )}
 
-                {/* Current photo on top, slides with finger */}
+                {/* Current photo on top, slides 1:1 with finger */}
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none',
                     transform: `translate(${mainPhotoZoom.x + swipeOffset}px, ${mainPhotoZoom.y}px) scale(${mainPhotoZoom.scale})`,
-                    transition: isZooming ? 'none' : swipeTransition ? 'transform 0.22s ease-out' : 'none',
+                    transition: isZooming ? 'none' : swipeTransition ? 'transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
                     position: 'relative', zIndex: 1
                   }} />
               </div>
