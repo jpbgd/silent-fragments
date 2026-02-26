@@ -481,7 +481,7 @@
             setSwipeTransition(false);
             setSwipeOffset(0);
             setSwipeOffsetY(0);
-          }, 100);
+          }, 140);
         } else {
           setSwipeTransition(true);
           setSwipeOffset(0);
@@ -786,7 +786,7 @@
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none',
                     transform: `translate(${mainPhotoZoom.x + swipeOffset}px, ${mainPhotoZoom.y + swipeOffsetY}px) scale(${mainPhotoZoom.scale})`,
-                    transition: isZooming ? 'none' : swipeTransition ? 'transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
+                    transition: isZooming ? 'none' : swipeTransition ? 'transform 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none',
                     position: 'relative', zIndex: 1
                   }} />
               </div>
