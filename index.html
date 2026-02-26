@@ -711,9 +711,9 @@
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
 
       // PEEK: photo underneath during swipe
-      const peekPhotoIndex = swipeOffset > 0
-        ? (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length
-        : (currentPhotoIndex + 1) % randomOrder.length;
+     const peekPhotoIndex = swipeOffset > 0
+      ? (currentPhotoIndex + 1) % randomOrder.length
+      : (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length;
       const peekPhoto = photos[randomOrder[peekPhotoIndex]];
 
       const isHovering = (el) => hoveredElement === el;
