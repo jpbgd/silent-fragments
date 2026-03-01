@@ -110,6 +110,25 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkY2pwd2lqcG56b2t3aHVjbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NTkwNTIsImV4cCI6MjA4NjQzNTA1Mn0.97209BtWx4hVj1zRxc2XTdc1ztlFK67jX-6RhilLW9s';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    const PREFACE_TEXT = {
+      eng: {
+        title: 'Preface',
+        body: `In a world saturated with images, do we need more? Yes, definitely.
+
+An image is a fragment of an infinite universe, a visual representation of something that existed only once, yet evolves through the intention of its creator and the reaction of its viewer. It is static in its technique and dynamic in its content. We fill images with ideas, concepts and narratives to generate emotions; we use them as tools to build identity, preserve our experiences, communicate our beliefs and materialize our ideals.
+
+Technology has expanded access to the production and consumption of images, broadening their reach but also accelerating their forgetting. The ease of consumption has turned them into a powerful stimulus, often catalyzing negative feelings, absorbing our presence and taking away the opportunity to give them our own meaning. What if we started from the idea of the image as a blank canvas, a fragment of something that becomes real only through the meaning its viewer can give it? A story told without hierarchy, told together. To find Barthes' punctum and dream around it.`
+      },
+      esp: {
+        title: 'Prefacio',
+        body: `¿En un mundo saturado de imágenes, necesitamos más? Sí, definitivamente.
+
+Una imagen es un fragmento de un universo infinito, una representación visual de algo que existió una sola vez, pero que evoluciona por medio de la intención de quien la crea y la reacción de quien la ve. Es estática en su técnica y dinámica en su contenido. Las llenamos con ideas, conceptos y narrativas para generar emociones; las utilizamos como herramienta de construcción de identidad, para preservar nuestras vivencias, comunicar nuestras creencias y materializar nuestros ideales.
+
+La tecnología ha masificado el acceso a la producción y al consumo de estas, ampliando su divulgación pero también acelerando su olvido. La facilidad en su consumo las ha convertido en una poderosa herramienta estimulante, muchas veces catalizando sentimientos negativos, absorbiendo nuestra presencia y quitándonos la oportunidad de darle nuestro propio significado. ¿Qué pasa si partimos desde la idea de la imagen como un lienzo en blanco, un fragmento de algo que se convierte en realidad solo por medio del significado que quien la ve le puede dar? Una historia que se cuenta sin jerarquización y en conjunto. Encontrar el punctum de Barthes y soñar alrededor de él.`
+      }
+    };
+
     const PhotoViewer = () => {
       const projectTitle = "Silent Fragments";
       const githubUser = "jpbgd";
@@ -139,6 +158,7 @@
       const [showContactSheet, setShowContactSheet] = useState(false);
       const [showCommentsView, setShowCommentsView] = useState(false);
       const [showPreface, setShowPreface] = useState(false);
+      const [prefaceLang, setPrefaceLang] = useState('eng');
       const [hoveredElement, setHoveredElement] = useState(null);
       const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
@@ -385,6 +405,7 @@
           const now = Date.now();
           if (now - lastPhotoClickTime.current < DOUBLE_CLICK_THRESHOLD) {
             lastPhotoClickTime.current = 0;
+            setPrefaceLang('eng');
             setShowPreface(true);
           } else {
             lastPhotoClickTime.current = now;
@@ -403,6 +424,7 @@
               singleTapTimer.current = null;
             }
             lastPhotoTapTime.current = 0;
+            setPrefaceLang('eng');
             setShowPreface(true);
           } else {
             lastPhotoTapTime.current = now;
@@ -710,10 +732,9 @@
 
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
 
-      // PEEK: photo underneath during swipe
-     const peekPhotoIndex = swipeOffset > 0
-      ? (currentPhotoIndex + 1) % randomOrder.length
-      : (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length;
+      const peekPhotoIndex = swipeOffset > 0
+       ? (currentPhotoIndex + 1) % randomOrder.length
+       : (currentPhotoIndex - 1 + randomOrder.length) % randomOrder.length;
       const peekPhoto = photos[randomOrder[peekPhotoIndex]];
 
       const isHovering = (el) => hoveredElement === el;
@@ -746,6 +767,8 @@
         cursor: 'pointer',
       };
 
+      const currentPreface = PREFACE_TEXT[prefaceLang];
+
       return (
         <div className="w-screen relative" style={{ overflow: 'hidden', position: 'fixed', inset: 0, touchAction: 'pan-y', backgroundColor: '#FAF9F6' }}
           onTouchStart={handleTouchStartSwipe} onTouchMove={handleTouchMoveMain} onTouchEnd={handleTouchEndSwipe}>
@@ -760,7 +783,6 @@
           {!showIntro && currentPhoto && (
             <div className="w-full flex flex-col items-center justify-between" style={{ height: isMobile ? '100dvh' : '100%', padding: pagePadding, overflow: 'hidden', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto' }}>
               
-              {/* ── Title ── */}
               <button
                 className="w-full text-center flex-shrink-0"
                 onClick={handleTitleClick}
@@ -775,14 +797,12 @@
                 style={{ flex: '1 1 auto', maxWidth: isMobile ? '100%' : '42rem', minHeight: 0, overflow: isMobile && mainPhotoZoom.scale > 1 ? 'visible' : 'hidden', padding: isMobile ? '8px 0' : '16px 0', cursor: isMobile ? 'default' : (isHovering('photo') ? 'pointer' : 'none'), position: 'relative' }}
                 onClick={isMobile && mainPhotoZoom.scale <= 1 ? handlePhotoTap : handlePhotoClick} onMouseEnter={() => !isMobile && setHoveredElement('photo')} onMouseLeave={() => !isMobile && setHoveredElement(null)}>
 
-                {/* PEEK: photo underneath, visible only while swiping */}
                 {(swipeOffset !== 0 || swipeOffsetY !== 0) && (
                   <img src={peekPhoto.url} alt={peekPhoto.title} className="object-contain"
                     style={{ position: 'absolute', maxWidth: '100%', maxHeight: '100%',
                       boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none', zIndex: 0 }} />
                 )}
 
-                {/* Current photo on top, follows finger in any direction */}
                 <img src={currentPhoto.url} alt={currentPhoto.title} className="object-contain"
                   style={{ maxWidth: '100%', maxHeight: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', touchAction: 'none',
                     transform: `translate(${mainPhotoZoom.x + swipeOffset}px, ${mainPhotoZoom.y + swipeOffsetY}px) scale(${mainPhotoZoom.scale})`,
@@ -988,26 +1008,53 @@
                   letterSpacing: '0.04em',
                   color: '#121212',
                   textAlign: 'center',
-                  marginBottom: isMobile ? '2rem' : '2.5rem',
+                  marginBottom: '0.75rem',
                   opacity: 0.85
                 }}>
-                  Preface
+                  {currentPreface.title}
                 </h1>
 
-                <p style={{
-                  fontFamily: "'Times New Roman', Times, serif",
-                  fontSize: isMobile ? '0.875rem' : '0.9375rem',
-                  fontWeight: 400,
-                  lineHeight: 1.75,
-                  color: '#121212',
-                  opacity: 0.7,
-                  textAlign: 'left',
-                  margin: 0
-                }}>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                  <br /><br />
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra.
-                </p>
+                {/* Language toggle */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: isMobile ? '2rem' : '2.5rem' }}
+                  onClick={(e) => e.stopPropagation()}>
+                  {['eng', 'esp'].map(lang => (
+                    <button
+                      key={lang}
+                      onClick={(e) => { e.stopPropagation(); setPrefaceLang(lang); }}
+                      onMouseEnter={() => setHoveredElement('lang_' + lang)}
+                      onMouseLeave={() => setHoveredElement(null)}
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '0.625rem',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        color: '#121212',
+                        opacity: prefaceLang === lang ? 0.85 : 0.35,
+                        transition: 'opacity 0.2s'
+                      }}>
+                      {lang.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+
+                {currentPreface.body.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx} style={{
+                    fontFamily: "'Times New Roman', Times, serif",
+                    fontSize: isMobile ? '0.875rem' : '0.9375rem',
+                    fontWeight: 400,
+                    lineHeight: 1.75,
+                    color: '#121212',
+                    opacity: 0.7,
+                    textAlign: 'left',
+                    margin: idx === 0 ? 0 : '1.25rem 0 0 0'
+                  }}>
+                    {paragraph}
+                  </p>
+                ))}
               </div>
 
               <div style={{
