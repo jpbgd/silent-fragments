@@ -555,10 +555,10 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       }, [isMobile, showContactSheet, swipeStartX, swipeStartY, handleNextPhoto, isZooming, mainPhotoZoom.scale]);
 
       const handleTitleClick = (e) => {
-        e.stopPropagation();
-        setShowIntro(true);
-        setTimeout(() => setShowIntro(false), 3000);
-      };
+           e.stopPropagation();
+           setPrefaceLang('eng');
+           setShowPreface(true);
+        }
 
       const handleSubmitComment = async () => {
         if (!commentText.trim()) return;
