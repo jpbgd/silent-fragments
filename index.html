@@ -239,9 +239,12 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
 
       useEffect(() => {
         if (photos.length > 0) {
-          setRandomOrder([...Array(photos.length).keys()].sort(() => Math.random() - 0.5));
-        }
-      }, [photos]);
+          photos.forEach(photo => {
+      const img = new Image();
+      img.src = photo.url;
+    });
+  }
+}, [photos]);
 
       useEffect(() => {
         const timer = setTimeout(() => setShowIntro(false), 1500);
