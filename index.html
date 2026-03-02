@@ -202,6 +202,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       const lastClickTime = useRef(0);
       const lastGalleryClickTime = useRef({ index: -1, time: 0 });
       const lastGalleryTapTime = useRef({ index: -1, time: 0 });
+      const pendingDragSetup = useRef(null); // stores drag offset until movement confirms it's a drag
       const commentBoxRef = useRef(null);
       const textareaRef = useRef(null);
       const dissolveHeight = useRef(40);
@@ -617,9 +618,8 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       };
 
       // ── GALLERY: MOUSE HANDLERS ──────────────────────────────────────────
-      // Reset wasDragging + isLongPress at every new mousedown so that stale
-      // flags from the previous click's 150 ms longPress timer never block
-      // the double-click detection on the next click.
+      // Single click → nothing. Double-click → open that photo.
+      // Hold 150ms without releasing → drag starts.
       const handleImageMouseDown = (e, index) => {
         e.preventDefault();
         e.stopPropagation();
@@ -638,20 +638,21 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
 
       const handleImageMouseUp = (e, index) => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
-        if (draggingIndex === index && isLongPress.current) {
-          // genuine drag release — don't open
-          e.stopPropagation();
+        if (isLongPress.current) {
+          // genuine drag release
           setDraggingIndex(null);
           setTimeout(() => { wasDragging.current = false; isLongPress.current = false; }, 50);
-        } else if (Date.now() - lastClickTime.current < 200 && !isLongPress.current && !wasDragging.current) {
-          // quick click — requires double-click to open
-          if (draggingIndex === index) setDraggingIndex(null);
+          return;
+        }
+        // Quick click (< 250ms, no drag): requires double-click to open
+        if (Date.now() - lastClickTime.current < 250) {
+          setDraggingIndex(null);
           const now = Date.now();
           const last = lastGalleryClickTime.current;
-          if (last.index === index && now - last.time < 400) {
+          if (last.index === index && now - last.time < 500) {
             lastGalleryClickTime.current = { index: -1, time: 0 };
-            setCurrentPhotoIndex(randomOrder.indexOf(index));
-            setShowContactSheet(false);
+            const pos = randomOrder.indexOf(index);
+            if (pos !== -1) { setCurrentPhotoIndex(pos); setShowContactSheet(false); }
           } else {
             lastGalleryClickTime.current = { index, time: now };
           }
@@ -678,6 +679,8 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       }, [draggingIndex, dragOffset, imagePositions]);
 
       // ── GALLERY: TOUCH HANDLERS ──────────────────────────────────────────
+      // Single tap → nothing. Double-tap → open that photo.
+      // touchStart never starts dragging — drag begins only when finger actually moves.
       const handleImageTouchStart = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
@@ -692,6 +695,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           setPinchingIndex(index);
           setActiveImageIndex(index);
           setDraggingIndex(null);
+          pendingDragSetup.current = null;
           setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
           return;
         }
@@ -701,10 +705,15 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         e.target._touchStartY = touch.clientY;
         e.target._touchStartTime = Date.now();
 
-        setDragOffset({ x: touch.clientX - imagePositions[index].x, y: touch.clientY - imagePositions[index].y });
-        setDraggingIndex(index);
+        // Store drag setup but DON'T start dragging — wait for actual movement
+        pendingDragSetup.current = {
+          index,
+          offsetX: touch.clientX - (imagePositions[index]?.x || 0),
+          offsetY: touch.clientY - (imagePositions[index]?.y || 0)
+        };
+
         setActiveImageIndex(index);
-        setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
+        // Note: setDraggingIndex intentionally NOT called here
       };
 
       const handleImageTouchMove = (e, index) => {
@@ -742,12 +751,33 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           return;
         }
 
-        if (draggingIndex === index && e.touches.length === 1) {
-          e.preventDefault();
+        if (e.touches.length === 1) {
           const touch = e.touches[0];
-          const newPositions = [...imagePositions];
-          newPositions[index] = { ...newPositions[index], x: touch.clientX - dragOffset.x, y: touch.clientY - dragOffset.y };
-          setImagePositions(newPositions);
+          const startX = e.target._touchStartX || touch.clientX;
+          const startY = e.target._touchStartY || touch.clientY;
+          const moveDist = Math.hypot(touch.clientX - startX, touch.clientY - startY);
+
+          // Start drag only when finger has actually moved > 8px
+          if (draggingIndex !== index && moveDist > 8 && pendingDragSetup.current?.index === index) {
+            const setup = pendingDragSetup.current;
+            setDragOffset({ x: setup.offsetX, y: setup.offsetY });
+            setDraggingIndex(index);
+            setZIndexOrder(prev => [...prev.filter(i => i !== index), index]);
+          }
+
+          if (draggingIndex === index) {
+            e.preventDefault();
+            const setup = pendingDragSetup.current;
+            if (setup) {
+              const newPositions = [...imagePositions];
+              newPositions[index] = {
+                ...newPositions[index],
+                x: touch.clientX - setup.offsetX,
+                y: touch.clientY - setup.offsetY
+              };
+              setImagePositions(newPositions);
+            }
+          }
         }
       };
 
@@ -757,31 +787,36 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         if (pinchingIndex === index) {
           setPinchingIndex(null);
           setActiveImageIndex(null);
+          pendingDragSetup.current = null;
           return;
         }
+
+        const wasDraggingThis = draggingIndex === index;
+        setDraggingIndex(null);
+        setActiveImageIndex(null);
+        pendingDragSetup.current = null;
+
+        // If it was a real drag, don't treat as tap
+        if (wasDraggingThis) return;
         
         const diffX = Math.abs((e.changedTouches[0]?.clientX || 0) - (e.target._touchStartX || 0));
         const diffY = Math.abs((e.changedTouches[0]?.clientY || 0) - (e.target._touchStartY || 0));
         const duration = Date.now() - (e.target._touchStartTime || 0);
         
-        if (diffX < 10 && diffY < 10 && duration < 200) {
-          // tap detected — double-tap to open
+        // Tap = minimal movement, up to 300ms (generous for deliberate taps)
+        if (diffX < 12 && diffY < 12 && duration < 300) {
           const now = Date.now();
           const last = lastGalleryTapTime.current;
-          setDraggingIndex(null);
-          setActiveImageIndex(null);
-          if (last.index === index && now - last.time < 400) {
+          if (last.index === index && now - last.time < 500) {
+            // Double-tap: open exactly this photo
             lastGalleryTapTime.current = { index: -1, time: 0 };
-            setCurrentPhotoIndex(randomOrder.indexOf(index));
-            setShowContactSheet(false);
+            const pos = randomOrder.indexOf(index);
+            if (pos !== -1) { setCurrentPhotoIndex(pos); setShowContactSheet(false); }
           } else {
+            // Single tap: record it, do nothing visible
             lastGalleryTapTime.current = { index, time: now };
           }
-          return;
         }
-        
-        setDraggingIndex(null);
-        setActiveImageIndex(null);
       };
 
       if (loading || !photos.length || !randomOrder.length) {
@@ -1164,5 +1199,4 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
   </script>
 </body>
 </html>
-
 
