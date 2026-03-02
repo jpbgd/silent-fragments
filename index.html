@@ -110,6 +110,8 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkY2pwd2lqcG56b2t3aHVjbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NTkwNTIsImV4cCI6MjA4NjQzNTA1Mn0.97209BtWx4hVj1zRxc2XTdc1ztlFK67jX-6RhilLW9s';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    const PLACEHOLDER_TEXT = "The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...";
+
     const PREFACE_TEXT = {
       eng: {
         title: 'Preface',
@@ -163,6 +165,8 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
       const [commentText, setCommentText] = useState('');
+      // --- CHANGE 1: placeholder-as-selectable-text state ---
+      const [isPlaceholderActive, setIsPlaceholderActive] = useState(false);
       const [dissolving, setDissolving] = useState(false);
       const [dissolveText, setDissolveText] = useState('');
       const [dissolveOpacity, setDissolveOpacity] = useState(1);
@@ -351,11 +355,24 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         };
       }, [showScreensaver, isMobile]);
 
+      // --- CHANGE 1: reset placeholder state when comment box opens ---
+      useEffect(() => {
+        if (showCommentBox) {
+          setIsPlaceholderActive(true);
+          setCommentText('');
+        }
+      }, [showCommentBox]);
+
       useEffect(() => {
         if (showCommentBox && textareaRef.current && !dissolving && !showMergedMessage) {
           textareaRef.current.focus();
+          if (isPlaceholderActive) {
+            setTimeout(() => {
+              if (textareaRef.current) textareaRef.current.select();
+            }, 50);
+          }
         }
-      }, [showCommentBox, dissolving, showMergedMessage]);
+      }, [showCommentBox, dissolving, showMergedMessage, isPlaceholderActive]);
 
       useEffect(() => {
         if (!showContactSheet) {
@@ -380,11 +397,12 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         const shuffledZones = [...zones].sort(() => Math.random() - 0.5);
         const positions = photos.map((_, index) => {
           const zone = shuffledZones[index % shuffledZones.length];
-          const baseWidth = isMobileView ? 0.38 : 0.26;
+          // --- CHANGE 2: smaller base widths so images breathe more ---
+          const baseWidth = isMobileView ? 0.26 : 0.17;
           return {
             x: (zone.x + (Math.random() - 0.5) * 0.1) * vw,
             y: (zone.y + (Math.random() - 0.5) * 0.1) * vh,
-            width: (baseWidth + (Math.random() - 0.5) * 0.08) * vw
+            width: (baseWidth + (Math.random() - 0.5) * 0.06) * vw
           };
         });
         setImagePositions(positions);
@@ -512,7 +530,8 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           setSwipeOffset(exitX);
           setSwipeOffsetY(exitY);
           setTimeout(() => {
-            if (diff > 0) handleNextPhoto(); else handlePrevPhoto();
+            // --- CHANGE 3: always advance forward regardless of swipe direction ---
+            handleNextPhoto();
             setSwipeTransition(false);
             setSwipeOffset(0);
             setSwipeOffsetY(0);
@@ -525,7 +544,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         }
         setSwipeStartX(null);
         setSwipeStartY(null);
-      }, [isMobile, showContactSheet, swipeStartX, swipeStartY, handleNextPhoto, handlePrevPhoto, isZooming, mainPhotoZoom.scale]);
+      }, [isMobile, showContactSheet, swipeStartX, swipeStartY, handleNextPhoto, isZooming, mainPhotoZoom.scale]);
 
       const handleTitleClick = (e) => {
         e.stopPropagation();
@@ -534,7 +553,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       };
 
       const handleSubmitComment = async () => {
-        if (!commentText.trim()) return;
+        if (!commentText.trim() || isPlaceholderActive) return;
         const textToSave = commentText.trim();
         const currentPhoto = photos[randomOrder[currentPhotoIndex]];
         
@@ -584,6 +603,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           if (!dissolving && !showMergedMessage) {
             setShowCommentBox(false);
             setCommentText('');
+            setIsPlaceholderActive(false);
           }
         }
       }, [dissolving, showMergedMessage]);
@@ -592,6 +612,31 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         if (!dissolving && !showMergedMessage) {
           setShowCommentBox(false);
           setCommentText('');
+          setIsPlaceholderActive(false);
+        }
+      };
+
+      // --- CHANGE 1: textarea change handler for selectable placeholder ---
+      const handleTextareaChange = (e) => {
+        const val = e.target.value;
+        if (isPlaceholderActive) {
+          // User typed or deleted while placeholder was selected
+          const newChar = val.replace(PLACEHOLDER_TEXT, '');
+          setIsPlaceholderActive(false);
+          setCommentText(newChar);
+        } else {
+          if (val === '') {
+            // All text deleted — restore placeholder
+            setIsPlaceholderActive(true);
+          } else {
+            setCommentText(val);
+          }
+        }
+      };
+
+      const handleTextareaFocus = () => {
+        if (isPlaceholderActive && textareaRef.current) {
+          textareaRef.current.select();
         }
       };
 
@@ -875,17 +920,31 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 40 }}>
                   {!showMergedMessage && !dissolving && (
                     <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
-                      <textarea ref={textareaRef} value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                        placeholder=""
+                      {/* --- CHANGE 1: textarea now holds placeholder text as selectable content --- */}
+                      <textarea
+                        ref={textareaRef}
+                        value={isPlaceholderActive ? PLACEHOLDER_TEXT : commentText}
+                        onChange={handleTextareaChange}
+                        onFocus={handleTextareaFocus}
                         className="font-body custom-placeholder"
                         spellCheck="false" autoComplete="off" autoCorrect="off" autoCapitalize="off"
                         data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"
-                        style={{ width: '100%', height: 'auto', minHeight: isMobile ? 90 : 40, maxHeight: '40vh', background: 'transparent', border: 'none', outline: 'none', resize: 'none', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2, padding: '10px 10px', cursor: isMobile ? 'auto' : 'none', color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)', overflow: 'hidden', caretColor: commentText === '' ? 'transparent' : '#ffffff', display: 'block' }} />
-                      {commentText === '' && (
-                        <div className="font-body" style={{ position: 'absolute', top: 0, left: 0, right: 0, pointerEvents: 'none', padding: '10px 10px', textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2, color: '#FFFFFF', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
-                          The image finds its voice through your words. Write a memory, a feeling, or anything it evokes in you...<span className="blink-cursor">|</span>
-                        </div>
-                      )}
+                        style={{
+                          width: '100%', height: 'auto',
+                          minHeight: isMobile ? 90 : 40, maxHeight: '40vh',
+                          background: 'transparent', border: 'none', outline: 'none', resize: 'none',
+                          textAlign: 'center', fontSize: '18px', fontWeight: 400, lineHeight: 1.2,
+                          padding: '10px 10px',
+                          cursor: isMobile ? 'auto' : 'none',
+                          color: isPlaceholderActive ? 'rgba(255,255,255,0.55)' : '#FFFFFF',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                          overflow: 'hidden',
+                          caretColor: isPlaceholderActive ? 'transparent' : '#ffffff',
+                          display: 'block',
+                          WebkitUserSelect: 'text',
+                          userSelect: 'text'
+                        }}
+                      />
                     </div>
                   )}
                   {dissolving && (
@@ -991,7 +1050,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
             </div>
           )}
 
-          {/* ── Preface page ── */}
           {showPreface && (
             <div className="preface-page fixed inset-0 z-50 overflow-auto" style={{ backgroundColor: '#FAF9F6', cursor: isMobile ? 'auto' : 'none' }}
               onClick={() => setShowPreface(false)}>
@@ -1027,7 +1085,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
                   {currentPreface.title}
                 </h1>
 
-                {/* Language toggle */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: isMobile ? '2rem' : '2.5rem' }}
                   onClick={(e) => e.stopPropagation()}>
                   {['eng', 'esp'].map(lang => (
@@ -1119,10 +1176,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
   </script>
 </body>
 </html>
-
-
-
-
 
 
 
