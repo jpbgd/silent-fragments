@@ -382,9 +382,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         const isMobileView = window.innerWidth <= 768;
         const vw = window.innerWidth, vh = window.innerHeight;
 
-        // Grid-spread: divide canvas into cells, assign one photo per cell,
-        // then nudge randomly within the cell so photos spread evenly
-        // but still look organic, with only slight overlap possible at edges.
         const count = photos.length;
         const cols = isMobileView ? 3 : 5;
         const rows = Math.ceil(count / cols);
@@ -392,7 +389,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         const cellW = (vw * 0.90) / cols;
         const cellH = (vh * 0.86) / rows;
 
-        // Shuffle cell indices so visual order is fully random
         const cellIndices = [...Array(cols * rows).keys()].sort(() => Math.random() - 0.5);
 
         const baseWidth = isMobileView ? 0.22 : 0.14;
@@ -403,7 +399,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           const col = cell % cols;
           const row = Math.floor(cell / cols);
           const imgW = (baseWidth + (Math.random() - 0.5) * widthVariance) * vw;
-          // nudge up to 28% of cell size in each axis — small enough to avoid heavy overlap
           const nudgeX = (Math.random() - 0.5) * cellW * 0.56;
           const nudgeY = (Math.random() - 0.5) * cellH * 0.56;
           return {
@@ -538,7 +533,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           setSwipeOffset(exitX);
           setSwipeOffsetY(exitY);
           setTimeout(() => {
-            // --- CHANGE 3: always advance forward regardless of swipe direction ---
             handleNextPhoto();
             setSwipeTransition(false);
             setSwipeOffset(0);
@@ -622,10 +616,17 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         }
       };
 
+      // ── GALLERY: MOUSE HANDLERS ──────────────────────────────────────────
+      // Reset wasDragging + isLongPress at every new mousedown so that stale
+      // flags from the previous click's 150 ms longPress timer never block
+      // the double-click detection on the next click.
       const handleImageMouseDown = (e, index) => {
         e.preventDefault();
         e.stopPropagation();
         lastClickTime.current = Date.now();
+        wasDragging.current = false;
+        isLongPress.current = false;
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
         longPressTimer.current = setTimeout(() => {
           isLongPress.current = true;
           wasDragging.current = true;
@@ -637,12 +638,14 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
 
       const handleImageMouseUp = (e, index) => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
-        if (draggingIndex === index) {
+        if (draggingIndex === index && isLongPress.current) {
+          // genuine drag release — don't open
           e.stopPropagation();
           setDraggingIndex(null);
           setTimeout(() => { wasDragging.current = false; isLongPress.current = false; }, 50);
         } else if (Date.now() - lastClickTime.current < 200 && !isLongPress.current && !wasDragging.current) {
-          // double-click required to open
+          // quick click — requires double-click to open
+          if (draggingIndex === index) setDraggingIndex(null);
           const now = Date.now();
           const last = lastGalleryClickTime.current;
           if (last.index === index && now - last.time < 400) {
@@ -674,6 +677,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         };
       }, [draggingIndex, dragOffset, imagePositions]);
 
+      // ── GALLERY: TOUCH HANDLERS ──────────────────────────────────────────
       const handleImageTouchStart = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
@@ -761,7 +765,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         const duration = Date.now() - (e.target._touchStartTime || 0);
         
         if (diffX < 10 && diffY < 10 && duration < 200) {
-          // double-tap required to open
+          // tap detected — double-tap to open
           const now = Date.now();
           const last = lastGalleryTapTime.current;
           setDraggingIndex(null);
@@ -788,7 +792,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
 
       const currentPhoto = photos[randomOrder[currentPhotoIndex]];
 
-      // peek always shows the next photo in forward order regardless of swipe direction
       const peekPhotoIndex = (currentPhotoIndex + 1) % randomOrder.length;
       const peekPhoto = photos[randomOrder[peekPhotoIndex]];
 
@@ -917,7 +920,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 40 }}>
                   {!showMergedMessage && !dissolving && (
                     <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '70%' }}>
-                      {/* original custom placeholder overlay */}
                       <textarea ref={textareaRef} value={commentText}
                         onChange={(e) => { setCommentText(e.target.value); if (e.target.value !== '') setPlaceholderVisible(false); else setPlaceholderVisible(true); }}
                         onKeyDown={(e) => { if ((e.key === 'Backspace' || e.key === 'Delete') && commentText === '') { setPlaceholderVisible(false); } }}
