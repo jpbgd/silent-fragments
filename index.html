@@ -291,6 +291,18 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
       }, []);
+      useEffect(() => {
+         if (isMobile) return;
+         const handleKeyDown = (e) => {
+         if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+         if (!showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
+          handleNextPhoto();
+        }
+      }
+     };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isMobile, showCommentBox, showContactSheet, showCommentsView, showPreface, handleNextPhoto]);
 
       useEffect(() => {
         const resetInactivity = (e) => {
