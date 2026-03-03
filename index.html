@@ -1030,6 +1030,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
                       transform: !isMobile && isDragging ? 'scale(1.05)' : 'scale(1)',
                       cursor: isMobile ? 'default' : 'grab', touchAction: 'none'
                     }}
+                      onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => !isMobile && handleImageMouseDown(e, index)}
                       onMouseUp={(e) => !isMobile && handleImageMouseUp(e, index)}
                       onMouseEnter={() => !isMobile && setHoveredThumbnail(index)}
