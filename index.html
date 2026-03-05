@@ -110,8 +110,6 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkY2pwd2lqcG56b2t3aHVjbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NTkwNTIsImV4cCI6MjA4NjQzNTA1Mn0.97209BtWx4hVj1zRxc2XTdc1ztlFK67jX-6RhilLW9s';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
-
     const PREFACE_TEXT = {
       eng: {
         title: 'Preface',
@@ -202,7 +200,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       const lastClickTime = useRef(0);
       const lastGalleryClickTime = useRef({ index: -1, time: 0 });
       const lastGalleryTapTime = useRef({ index: -1, time: 0 });
-      const pendingDragSetup = useRef(null); // stores drag offset until movement confirms it's a drag
+      const pendingDragSetup = useRef(null);
       const commentBoxRef = useRef(null);
       const textareaRef = useRef(null);
       const dissolveHeight = useRef(40);
@@ -291,18 +289,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
       }, []);
-      useEffect(() => {
-         if (isMobile) return;
-         const handleKeyDown = (e) => {
-         if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
-         if (!showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
-          handleNextPhoto();
-        }
-      }
-     };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isMobile, showCommentBox, showContactSheet, showCommentsView, showPreface, handleNextPhoto]);
 
       useEffect(() => {
         const resetInactivity = (e) => {
@@ -446,6 +432,20 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         setMainPhotoZoom({ scale: 1, x: 0, y: 0 });
         setCurrentPhotoIndex(prev => (prev - 1 + randomOrder.length) % randomOrder.length);
       }, [randomOrder.length]);
+
+      // ── KEYBOARD NAVIGATION ── placed here, after handleNextPhoto is declared
+      useEffect(() => {
+        if (isMobile) return;
+        const handleKeyDown = (e) => {
+          if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+            if (!showCommentBox && !showContactSheet && !showCommentsView && !showPreface) {
+              handleNextPhoto();
+            }
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isMobile, showCommentBox, showContactSheet, showCommentsView, showPreface, handleNextPhoto]);
 
       const handlePhotoClick = useCallback(() => {
         if (!isMobile) {
@@ -630,8 +630,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       };
 
       // ── GALLERY: MOUSE HANDLERS ──────────────────────────────────────────
-      // Single click → nothing. Double-click → open that photo.
-      // Hold 150ms without releasing → drag starts.
       const handleImageMouseDown = (e, index) => {
         e.preventDefault();
         e.stopPropagation();
@@ -651,12 +649,10 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       const handleImageMouseUp = (e, index) => {
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
         if (isLongPress.current) {
-          // genuine drag release
           setDraggingIndex(null);
           setTimeout(() => { wasDragging.current = false; isLongPress.current = false; }, 50);
           return;
         }
-        // Quick click (< 250ms, no drag): requires double-click to open
         if (Date.now() - lastClickTime.current < 250) {
           setDraggingIndex(null);
           const now = Date.now();
@@ -691,8 +687,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
       }, [draggingIndex, dragOffset, imagePositions]);
 
       // ── GALLERY: TOUCH HANDLERS ──────────────────────────────────────────
-      // Single tap → nothing. Double-tap → open that photo.
-      // touchStart never starts dragging — drag begins only when finger actually moves.
       const handleImageTouchStart = (e, index) => {
         if (activeImageIndex !== null && activeImageIndex !== index) return;
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
@@ -717,7 +711,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         e.target._touchStartY = touch.clientY;
         e.target._touchStartTime = Date.now();
 
-        // Store drag setup but DON'T start dragging — wait for actual movement
         pendingDragSetup.current = {
           index,
           offsetX: touch.clientX - (imagePositions[index]?.x || 0),
@@ -725,7 +718,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         };
 
         setActiveImageIndex(index);
-        // Note: setDraggingIndex intentionally NOT called here
       };
 
       const handleImageTouchMove = (e, index) => {
@@ -769,7 +761,6 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
           const startY = e.target._touchStartY || touch.clientY;
           const moveDist = Math.hypot(touch.clientX - startX, touch.clientY - startY);
 
-          // Start drag only when finger has actually moved > 8px
           if (draggingIndex !== index && moveDist > 8 && pendingDragSetup.current?.index === index) {
             const setup = pendingDragSetup.current;
             setDragOffset({ x: setup.offsetX, y: setup.offsetY });
@@ -808,24 +799,20 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
         setActiveImageIndex(null);
         pendingDragSetup.current = null;
 
-        // If it was a real drag, don't treat as tap
         if (wasDraggingThis) return;
         
         const diffX = Math.abs((e.changedTouches[0]?.clientX || 0) - (e.target._touchStartX || 0));
         const diffY = Math.abs((e.changedTouches[0]?.clientY || 0) - (e.target._touchStartY || 0));
         const duration = Date.now() - (e.target._touchStartTime || 0);
         
-        // Tap = minimal movement, up to 300ms (generous for deliberate taps)
         if (diffX < 12 && diffY < 12 && duration < 300) {
           const now = Date.now();
           const last = lastGalleryTapTime.current;
           if (last.index === index && now - last.time < 500) {
-            // Double-tap: open exactly this photo
             lastGalleryTapTime.current = { index: -1, time: 0 };
             const pos = randomOrder.indexOf(index);
             if (pos !== -1) { setCurrentPhotoIndex(pos); setShowContactSheet(false); }
           } else {
-            // Single tap: record it, do nothing visible
             lastGalleryTapTime.current = { index, time: now };
           }
         }
@@ -1212,6 +1199,9 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
 
     ReactDOM.createRoot(document.getElementById('root')).render(<PhotoViewer />);
   </script>
+</body>
+</html>
+
 </body>
 </html>
 
