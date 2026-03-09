@@ -928,7 +928,7 @@ Una imagen es un fragmento de un universo infinito, una representación visual d
                   <div className="flex-1 flex justify-end">
                     <button onClick={(e) => { e.stopPropagation(); setPrefaceLang('eng'); setShowPreface(true); }}
                       onMouseEnter={() => !isMobile && setHoveredElement('photoTitle')} onMouseLeave={() => !isMobile && setHoveredElement(null)}
-                      className="transition-all text-right"
+                      className="transition-all"
                       style={{ ...bottomCenterStyle, color: textColor('photoTitle'), opacity: isMobile ? 0.7 : textOpacity('photoTitle') }}>
                       Intro
                     </button>
